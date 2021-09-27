@@ -1,46 +1,30 @@
-# Getting Started with Create React App
+# ux4iot-react
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Streaming live data from an azure iothub can be a lot of work. ux4iot solves this problem by providing a service, easy to deploy and use, to interact frictionless with your Azure IoTHub. Use the hooks in this library to implement your use cases for live data and device methods. As an example: Using live data in your react application will be as easy as writing
 
-## Available Scripts
+```js
+const myTelemetry = useSingleTelemetry('myDevice', 'myTelemetry');
+```
 
-In the project directory, you can run:
+This library provides hooks for:
 
-### `yarn start`
+* `useTelemetry` - Subscribe to telemetry of multiple devices
+* `useSingleTelemetry` - Subscribe to a single telemetry key of a device
+* `useDeviceTwin` -  Subscribe to device twin changes of a device
+* `useConnectionState` - Subscribe to connection state updates of a device
+* `useDirectMethod` - Execute a direct method on a device
+* `usePatchDesiredProperties` - Update the desired properties of a device
+* `useD2CMessage` - Use the raw messages sent by your devices
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## Installation
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+```
+npm install ux4iot-react
+```
 
-### `yarn test`
+## Check out the [Documentation](https://docs.ux4iot.com/using-react/introduction) for
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `yarn build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `yarn eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+* Additional options
+* Hook API
+* ux4iot API
+* reference to other related libraries of the ux4iot service
