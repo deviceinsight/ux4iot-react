@@ -7,6 +7,10 @@
 	"files": [
 		"lib"
 	],
+	"repository": {
+		"url": "https://github.com/deviceinsight/ux4iot-react",
+		"type": "git"
+	},
 	"scripts": {
 		"start": "react-scripts start",
 		"test": "react-scripts test",
