@@ -59,11 +59,10 @@ export function printDevModeWarning(): void {
  _____________________________________________________
 |                                                     |
 |                     Warning                         |
-|   You are using ux4iot-react in Development mode.   |
+|  You are using ux4iot-react in Development mode.    |
 |                                                     |
-|  Lookup the docs chapter security backend to        |
-|  learn why is a bad idea:                           |
-|  https://app.gitbook.com/@device-insight/s/ux4iot/  |
+|  Don't use this in production, follow the link for  |
+|  more information: https://bit.ly/3igAntF           |
 |_____________________________________________________|
 	`,
 		'color: red; font-weight: bold; font-size: 14px;'
