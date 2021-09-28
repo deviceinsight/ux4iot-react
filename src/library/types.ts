@@ -81,9 +81,4 @@ export type RawD2CMessageCallback = (
 
 export type PatchDesiredPropertiesOptions = Record<string, unknown>;
 
-export type IoTHubResponse = {
-	status: number;
-	payload: unknown;
-};
-
 export type GrantErrorCallback = (error: GRANT_RESPONSES) => void;

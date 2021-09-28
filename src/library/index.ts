@@ -1,3 +1,4 @@
+export * from './ux4iot-shared';
 export * from './types';
 export * from './grants';
 export * from './Ux4iot';
@@ -6,4 +7,6 @@ export * from './useTelemetry';
 export * from './useSingleTelemetry';
 export * from './useDeviceTwin';
 export * from './useConnectionState';
-// export * from './ux4iot-types';
+export * from './usePatchDesiredProperties';
+export * from './useDirectMethod';
+export * from './useD2CMessage';

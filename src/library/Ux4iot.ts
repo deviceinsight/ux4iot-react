@@ -22,7 +22,6 @@ import {
 	RawD2CMessageCallback,
 	isDevOptions,
 	isProdOptions,
-	IoTHubResponse,
 	GrantErrorCallback,
 	GRANT_RESPONSES,
 } from './types';
@@ -34,7 +33,13 @@ import {
 	createPatchDesiredPropertiesGrant,
 	createRawD2CMessageGrant,
 } from './grants';
-import { GrantRequest, Message, parseConnectionString } from './ux4iot-shared';
+import {
+	GrantRequest,
+	Message,
+	parseConnectionString,
+	IoTHubResponse,
+} from './ux4iot-shared';
+
 import { DeviceMethodParams } from 'azure-iothub';
 
 const RECONNECT_TIMEOUT = 5000;
