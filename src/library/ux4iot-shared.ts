@@ -25,7 +25,7 @@ export type DirectMethodGrantRequest = GrantRequestBase<{
 	directMethodName: string | null; // null means: Access to all direct methods
 }>;
 export type RawD2CMessageGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToD2CMessage';
+	grantType: 'subscribeToD2CMessages';
 }>;
 
 export type GrantRequest =

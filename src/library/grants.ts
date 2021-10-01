@@ -71,7 +71,7 @@ export function createRawD2CMessageGrant(
 	deviceId: string
 ): RawD2CMessageGrantRequest {
 	return {
-		grantType: 'subscribeToD2CMessage',
+		grantType: 'subscribeToD2CMessages',
 		deviceId,
 		sessionId,
 	};
