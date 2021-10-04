@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useTelemetry } from './library';
+import { useMultiTelemetry } from './library';
 import { useConnectionState } from './library/useConnectionState';
 import { useDeviceTwin } from './library/useDeviceTwin';
 
@@ -10,10 +10,10 @@ type Props = {
 
 export const TestSubscriber: FC<Props> = ({ deviceId }) => {
 	const { telemetry, toggleTelemetry, isSubscribed, currentSubscribers } =
-		useTelemetry({
+		useMultiTelemetry({
 			initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
 			onData: (deviceId, key, value) =>
-				console.log('useTelemetry', deviceId, key, value),
+				console.log('useMultiTelemetry', deviceId, key, value),
 			onGrantError: error => console.log(error),
 		});
 	const [myState, setMyState] = useState<number>(0);

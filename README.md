@@ -9,15 +9,15 @@ Use the hooks in this library to implement your use cases for live data and for 
 As an example: Using live data in your react application will be as easy as writing
 
 ```js
-const myTelemetry = useSingleTelemetry('myDevice', 'myTelemetry');
+const myTelemetry = useTelemetry('myDevice', 'myTelemetry');
 ```
 
 in your React components.
 
 This library provides hooks for:
 
-- `useTelemetry` - Subscribe to telemetry of multiple devices
-- `useSingleTelemetry` - Subscribe to a single telemetry key of a device
+- `useTelemetry` - Subscribe to a single telemetry key of a device
+- `useMultiTelemetry` - Subscribe to telemetry of multiple devices
 - `useDeviceTwin` - Subscribe to device twin changes
 - `useConnectionState` - Subscribe to connection state updates of a device
 - `useDirectMethod` - Execute a direct method on a device
