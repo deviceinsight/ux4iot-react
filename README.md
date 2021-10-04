@@ -6,7 +6,7 @@ No need to design a REST API so that your UI can offer IoT functionality.
 
 Use the hooks in this library to implement your use cases for live data and for controlling devices. 
 
-As an example: Using live data in your react application will be as easy as writing
+As an example: Using live data in your React application will be as easy as writing
 
 ```js
 const myTelemetry = useSingleTelemetry('myDevice', 'myTelemetry');
