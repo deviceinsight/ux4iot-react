@@ -1,13 +1,13 @@
 import { FC } from 'react';
-import { useD2CMessage } from './library/useD2CMessage';
+import { useD2CMessages } from './library/useD2CMessages';
 
 type Props = {
 	deviceId: string;
 };
 export const TestRawD2CMessageSubscriber: FC<Props> = ({ deviceId }) => {
-	const lastMessage = useD2CMessage(deviceId, {
+	const lastMessage = useD2CMessages(deviceId, {
 		onData: message => {
-			console.log('useD2CMessage received message:', message);
+			console.log('useD2CMessages received message:', message);
 		},
 	});
 

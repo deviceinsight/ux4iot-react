@@ -9,4 +9,4 @@ export * from './useDeviceTwin';
 export * from './useConnectionState';
 export * from './usePatchDesiredProperties';
 export * from './useDirectMethod';
-export * from './useD2CMessage';
+export * from './useD2CMessages';

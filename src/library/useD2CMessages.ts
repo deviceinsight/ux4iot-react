@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { GrantErrorCallback, RawD2CMessageCallback } from './types';
 import { Ux4iotContext } from './Ux4iotContext';
 
-export const useD2CMessage = <T>(
+export const useD2CMessages = <T>(
 	deviceId: string,
 	options: {
 		onData?: (data: T) => void;

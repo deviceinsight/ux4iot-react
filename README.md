@@ -22,7 +22,7 @@ This library provides hooks for:
 - `useConnectionState` - Subscribe to connection state updates of a device
 - `useDirectMethod` - Execute a direct method on a device
 - `usePatchDesiredProperties` - Update the desired properties of the device twin
-- `useD2CMessage` - Use the raw messages sent by your devices
+- `useD2CMessages` - Use the raw messages sent by your devices
 
 ## Installation
 
