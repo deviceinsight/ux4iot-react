@@ -13,7 +13,7 @@ export const TestRawD2CMessageSubscriber: FC<Props> = ({ deviceId }) => {
 
 	return (
 		<div>
-			<h3>UseD2CMessage</h3>
+			<h3>UseD2CMessages</h3>
 			<div>Subscribed to deviceId {deviceId}</div>
 			<div>
 				Raw Message: <pre>{JSON.stringify(lastMessage, null, 2)}</pre>
