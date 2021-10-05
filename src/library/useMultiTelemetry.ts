@@ -37,7 +37,9 @@ type HookOptions = {
 	onGrantError?: GrantErrorCallback;
 };
 
-export const useMultiTelemetry = (options: HookOptions): UseMultiTelemetryOutput => {
+export const useMultiTelemetry = (
+	options: HookOptions
+): UseMultiTelemetryOutput => {
 	const { onData, onGrantError, initialSubscribers } = options;
 	const ux4iot = useContext(Ux4iotContext);
 	const [currentSubscribers, setSubscribers] = useState<Subscribers>({});

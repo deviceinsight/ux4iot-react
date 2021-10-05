@@ -30,7 +30,7 @@ export const TestSubscriber: FC<Props> = ({ deviceId }) => {
 	return (
 		<div style={{ display: 'flex' }}>
 			<div style={{ width: '33.3%' }}>
-				<h3>UseTelemetry</h3>
+				<h3>UseMultiTelemetry</h3>
 				{[
 					'simulated-device',
 					'simulated-device-2',
