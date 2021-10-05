@@ -9,7 +9,7 @@ Use the hooks in this library to implement your use cases for live data and for 
 As an example: Using live data in your React application will be as easy as writing
 
 ```js
-const myTelemetry = useTelemetry('myDevice', 'myTelemetry');
+const temperature = useTelemetry('myDevice', 'temperature');
 ```
 
 in your React components.

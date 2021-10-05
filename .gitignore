@@ -20,3 +20,5 @@ yarn-error.log*
 
 *.tgz
 *.swp
+
+.env
