@@ -1,4 +1,4 @@
-import { getDPDiff } from '../library/useTelemetry';
+import { getDPDiff } from '../library/useMultiTelemetry';
 
 const prev = {
 	a: ['1', '2', '4'],

@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useSingleTelemetry } from './library/useSingleTelemetry';
+import { useTelemetry } from './library/useTelemetry';
 
 type Props = {
 	deviceId: string;
@@ -9,13 +9,13 @@ export const TestSingleSubscriber: FC<Props> = ({
 	deviceId,
 	datapointName,
 }) => {
-	const value = useSingleTelemetry(deviceId, datapointName, {
+	const value = useTelemetry(deviceId, datapointName, {
 		onGrantError: error => console.log(error),
 	});
 
 	return (
 		<div>
-			<h3>UseSingleTelemetry</h3>
+			<h3>UseTelemetry</h3>
 			<div>
 				Subscribed to deviceId {deviceId} and telemetryKey {datapointName}
 			</div>
