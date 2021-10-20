@@ -1,6 +1,6 @@
 {
 	"name": "ux4iot-react",
-	"version": "0.2.0",
+	"version": "0.3.0",
 	"description": "React Hooks for ux4iot",
 	"main": "lib/index.js",
 	"types": "lib/index.d.ts",
