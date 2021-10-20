@@ -23,9 +23,9 @@ type DataCallback = (
 ) => void;
 
 type UseMultiTelemetryOutput = {
-	addTelemetry: (deviceId: string, telemetryKeys: string[]) => void;
-	removeTelemetry: (deviceId: string, telemetryKeys: string[]) => void;
-	toggleTelemetry: (deviceId: string, telemetryKey: string) => void;
+	addTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;
+	removeTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;
+	toggleTelemetry: (deviceId: string, telemetryKey: string) => Promise<void>;
 	isSubscribed: (deviceId: string, telemetryKey: string) => boolean;
 	telemetry: Record<string, Record<string, unknown>>;
 	currentSubscribers: Subscribers;
