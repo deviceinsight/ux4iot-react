@@ -24,7 +24,15 @@ This library provides hooks for:
 - `usePatchDesiredProperties` - Update the desired properties of the device twin
 - `useD2CMessages` - Use the raw messages sent by your devices
 
+## Prerequisites
+
+In order to use this library you need to have an ux4iot instance deployed in your Azure subscription. [Here](https://docs.ux4iot.com/quickstart) 
+is a link to a quickstart that explains how to deploy one. [Here](https://azuremarketplace.microsoft.com/en-us/marketplace/apps/deviceinsightgmbh-4961725.ux4iot)
+is the link to the Azure Marketplace offering.
+
 ## Installation
+
+Install `ux4iot-react` in your frontend application:
 
 ```
 npm install ux4iot-react
@@ -36,5 +44,6 @@ Check out the [Documentation](https://docs.ux4iot.com/using-react/introduction) 
 
 - Additional options
 - Hook API
-- ux4iot API
-- reference to other related libraries of the ux4iot service
+- ux4iot Admin SDKs
+- ux4iot Admin API
+- Reference to other related libraries of the ux4iot service
