@@ -6,7 +6,7 @@ type Props = {
 };
 
 export const TestInvokeDirectMethod: FC<Props> = ({ deviceId }) => {
-	const reboot = useDirectMethod(deviceId, 'version');
+	const reboot = useDirectMethod(deviceId, 'setSendInterval');
 	const [error, setError] = useState<string>('');
 	const [loading, setLoading] = useState<boolean>(false);
 	const [delay, setDelay] = useState<number>(1000);
@@ -15,7 +15,7 @@ export const TestInvokeDirectMethod: FC<Props> = ({ deviceId }) => {
 	const handleClick = useCallback(() => {
 		setLoading(true);
 		setError('');
-		reboot({ delay })
+		reboot({ delay: delay.toString() })
 			.then(response => {
 				console.log('success', response);
 				setRebootResult(response);
@@ -31,13 +31,14 @@ export const TestInvokeDirectMethod: FC<Props> = ({ deviceId }) => {
 
 	return (
 		<div>
-			<h3>Invoke Direct Method "version"</h3>
+			<h3>Invoke Direct Method "set send interval"</h3>
 			<div>
-				<label>Reboot</label>
-				<input type="button" onClick={handleClick} />
+				<button type="button" onClick={handleClick}>
+					Set Send Interval
+				</button>
 			</div>
 			<div>
-				<label>Reboot</label>
+				<label>Send Interval</label>
 				<input
 					type="number"
 					value={delay}

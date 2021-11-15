@@ -2,10 +2,11 @@ import { DeviceMethodParams } from 'azure-iothub';
 import { useCallback, useContext, useEffect, useRef } from 'react';
 import { Ux4iotContext } from './Ux4iotContext';
 import { GrantErrorCallback } from './types';
+import { IoTHubResponse } from './ux4iot-shared';
 
 type UseDirectMethodOutput = (
 	payload: Record<string, unknown>
-) => Promise<unknown>;
+) => Promise<IoTHubResponse | void>;
 
 type HookOptions = {
 	onGrantError?: GrantErrorCallback;
@@ -25,7 +26,10 @@ export const useDirectMethod = (
 	}, [onGrantError]);
 
 	const directMethod = useCallback(
-		async (deviceId: string, options: DeviceMethodParams) => {
+		async (
+			deviceId: string,
+			options: DeviceMethodParams
+		): Promise<IoTHubResponse | void> => {
 			return await ux4iot?.invokeDirectMethod(
 				deviceId,
 				options,
