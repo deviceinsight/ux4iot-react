@@ -8,14 +8,14 @@ type HookOptions = {
 	onGrantError?: GrantErrorCallback;
 };
 
-export const useTelemetry = (
+export const useTelemetry = <T = any>(
 	deviceId: string,
 	telemetryKey: string,
 	options: HookOptions = {}
-): unknown => {
+): T | undefined => {
 	const { onData, onGrantError } = options;
 	const ux4iot = useContext(Ux4iotContext);
-	const [value, setValue] = useState<unknown>();
+	const [value, setValue] = useState<T>();
 	const subscriberIdRef = useRef(uuidv4());
 	const onDataRef = useRef(onData);
 	const onGrantErrorRef = useRef(onGrantError);
@@ -29,7 +29,7 @@ export const useTelemetry = (
 		(deviceId: string, message: Record<string, unknown>) => {
 			const maybeValue = message[telemetryKey];
 			if (maybeValue) {
-				setValue(maybeValue);
+				setValue(maybeValue as T);
 				onDataRef.current && onDataRef.current(maybeValue);
 			}
 		},

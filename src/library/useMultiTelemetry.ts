@@ -48,7 +48,6 @@ export const useMultiTelemetry = (
 	const onGrantErrorRef = useRef(onGrantError);
 
 	useEffect(() => {
-		console.log('updated callbacks');
 		onDataRef.current = onData;
 		onGrantErrorRef.current = onGrantError;
 	}, [onData, onGrantError]);

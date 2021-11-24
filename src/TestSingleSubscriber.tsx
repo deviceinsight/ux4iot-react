@@ -16,6 +16,7 @@ export const TestSingleSubscriber: FC<Props> = ({
 	return (
 		<div>
 			<h3>UseTelemetry</h3>
+			<div>{value}</div>
 			<div>
 				Subscribed to deviceId {deviceId} and telemetryKey {datapointName}
 			</div>
