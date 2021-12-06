@@ -113,7 +113,7 @@ export class Ux4iot {
 
 	private log(...args: any[]) {
 		if (this.devMode) {
-			console.warn('Ux4iot:', ...args);
+			console.warn('ux4iot:', ...args);
 		}
 	}
 
