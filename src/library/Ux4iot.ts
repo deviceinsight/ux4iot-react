@@ -81,13 +81,13 @@ export class Ux4iot {
 	ux4iotURL: string;
 	sessionId = '';
 	socket: Socket | undefined;
+	needsResubscribingAfterConnect = false;
 	telemetrySubscribers: Record<string, TelemetryCallback>;
 	deviceTwinSubscribers: Record<string, DeviceTwinCallback>;
 	connectionStateSubscribers: Record<string, ConnectionStateCallback>;
 	rawD2CMessageSubscribers: Record<string, RawD2CMessageCallback>;
 	invokeDirectMethodGrants: Record<string, string[]>;
 	patchDesiredPropertiesGrants: string[];
-	socketState: 'INIT' | 'CONNECTED' | 'DISCONNECTED';
 	grantRequestFunction: GrantRequestFunctionType;
 	axiosInstance: AxiosInstance;
 	devMode: boolean;
@@ -108,13 +108,12 @@ export class Ux4iot {
 		this.axiosInstance = axios.create({
 			baseURL: ux4iotURL,
 		});
-		this.socketState = 'INIT';
 		this.devMode = devMode;
 	}
 
 	private log(...args: any[]) {
 		if (this.devMode) {
-			console.log('Ux4iot:', ...args);
+			console.warn('ux4iot:', ...args);
 		}
 	}
 
@@ -162,6 +161,12 @@ export class Ux4iot {
 		return instance;
 	}
 
+	destroy(): void {
+		this.socket?.disconnect();
+		this.socket = undefined;
+		this.log('socket with id ', this.sessionId, ' destroyed');
+	}
+
 	private async initSessionId(): Promise<void | string> {
 		const response = await this.axiosInstance.post('/session');
 
@@ -172,18 +177,20 @@ export class Ux4iot {
 
 	private onConnect() {
 		this.log(`Connected to ${this.ux4iotURL}`);
-		if (this.socketState === 'DISCONNECTED') {
+		if (this.needsResubscribingAfterConnect) {
 			this.log('Successfully reconnected. Resubscribing to old state...');
 			this.resubscribeState();
+			this.needsResubscribingAfterConnect = false;
 		}
-		this.socketState = 'CONNECTED';
 	}
 
 	private onErrorOrDisconnect(error: unknown) {
 		console.error(DISCONNECTED_MESSAGE, error);
-		this.socketState = 'DISCONNECTED';
 		this.socket = undefined;
-		setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
+		if (error === 'io server disconnect') {
+			this.needsResubscribingAfterConnect = true;
+			setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
+		}
 	}
 
 	private async onData(data: Message) {
@@ -379,7 +386,7 @@ export class Ux4iot {
 	}
 
 	public cleanupSubscriberId(id: string): void {
-		this.log('Removing all telemetry subscriptions with subscriberId', id);
+		this.log('Removing all subscriptions with subscriberId', id);
 
 		this.telemetrySubscribers = cleanSubId(id, this.telemetrySubscribers);
 		this.deviceTwinSubscribers = cleanSubId(id, this.deviceTwinSubscribers);
