@@ -114,7 +114,7 @@ export class Ux4iot {
 
 	private log(...args: any[]) {
 		if (this.devMode) {
-			console.log('Ux4iot:', ...args);
+			console.warn('Ux4iot:', ...args);
 		}
 	}
 
@@ -162,6 +162,12 @@ export class Ux4iot {
 		return instance;
 	}
 
+	destroy(): void {
+		this.socket?.disconnect();
+		this.socket = undefined;
+		this.log('socket with id ', this.sessionId, ' destroyed');
+	}
+
 	private async initSessionId(): Promise<void | string> {
 		const response = await this.axiosInstance.post('/session');
 
@@ -183,7 +189,9 @@ export class Ux4iot {
 		console.error(DISCONNECTED_MESSAGE, error);
 		this.socketState = 'DISCONNECTED';
 		this.socket = undefined;
-		setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
+		if (error === 'io server disconnect') {
+			setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
+		}
 	}
 
 	private async onData(data: Message) {
@@ -379,7 +387,7 @@ export class Ux4iot {
 	}
 
 	public cleanupSubscriberId(id: string): void {
-		this.log('Removing all telemetry subscriptions with subscriberId', id);
+		this.log('Removing all subscriptions with subscriberId', id);
 
 		this.telemetrySubscribers = cleanSubId(id, this.telemetrySubscribers);
 		this.deviceTwinSubscribers = cleanSubId(id, this.deviceTwinSubscribers);
