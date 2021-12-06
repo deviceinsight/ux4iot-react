@@ -9,23 +9,20 @@ type Props = {
 };
 
 export const TestSubscriber: FC<Props> = ({ deviceId }) => {
-	const { telemetry, toggleTelemetry, isSubscribed, currentSubscribers } =
-		useMultiTelemetry({
-			initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
-			onData: (deviceId, key, value) =>
-				console.log('useMultiTelemetry', deviceId, key, value),
-			onGrantError: error => console.log(error),
-		});
+	const { telemetry, toggleTelemetry, isSubscribed } = useMultiTelemetry({
+		initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
+		onData: (deviceId, key, value) =>
+			console.log('useMultiTelemetry', deviceId, key, value),
+		onGrantError: error => console.log(error),
+	});
 	const [myState, setMyState] = useState<number>(0);
 	const twin = useDeviceTwin(deviceId, {
 		onData: twin => {
 			setMyState(myState + 1);
-			console.log('prevstate', twin, myState);
 		},
 		onGrantError: error => console.log(error),
 	});
 	const connectionState = useConnectionState(deviceId);
-	console.log(currentSubscribers);
 
 	return (
 		<div style={{ display: 'flex' }}>
