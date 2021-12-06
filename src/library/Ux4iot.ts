@@ -81,13 +81,13 @@ export class Ux4iot {
 	ux4iotURL: string;
 	sessionId = '';
 	socket: Socket | undefined;
+	needsResubscribingAfterConnect = false;
 	telemetrySubscribers: Record<string, TelemetryCallback>;
 	deviceTwinSubscribers: Record<string, DeviceTwinCallback>;
 	connectionStateSubscribers: Record<string, ConnectionStateCallback>;
 	rawD2CMessageSubscribers: Record<string, RawD2CMessageCallback>;
 	invokeDirectMethodGrants: Record<string, string[]>;
 	patchDesiredPropertiesGrants: string[];
-	socketState: 'INIT' | 'CONNECTED' | 'DISCONNECTED';
 	grantRequestFunction: GrantRequestFunctionType;
 	axiosInstance: AxiosInstance;
 	devMode: boolean;
@@ -108,7 +108,6 @@ export class Ux4iot {
 		this.axiosInstance = axios.create({
 			baseURL: ux4iotURL,
 		});
-		this.socketState = 'INIT';
 		this.devMode = devMode;
 	}
 
@@ -178,18 +177,18 @@ export class Ux4iot {
 
 	private onConnect() {
 		this.log(`Connected to ${this.ux4iotURL}`);
-		if (this.socketState === 'DISCONNECTED') {
+		if (this.needsResubscribingAfterConnect) {
 			this.log('Successfully reconnected. Resubscribing to old state...');
 			this.resubscribeState();
+			this.needsResubscribingAfterConnect = false;
 		}
-		this.socketState = 'CONNECTED';
 	}
 
 	private onErrorOrDisconnect(error: unknown) {
 		console.error(DISCONNECTED_MESSAGE, error);
-		this.socketState = 'DISCONNECTED';
 		this.socket = undefined;
 		if (error === 'io server disconnect') {
+			this.needsResubscribingAfterConnect = true;
 			setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
 		}
 	}
