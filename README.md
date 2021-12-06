@@ -47,3 +47,15 @@ Check out the [Documentation](https://docs.ux4iot.com/using-react/introduction) 
 - ux4iot Admin SDKs
 - ux4iot Admin API
 - Reference to other related libraries of the ux4iot service
+
+## Releasing
+
+If you want to release a new version
+- `git checkout master`
+- Increase the version based on your changed in package.json (usually minor)
+- `git commit -m 'Release VERSION'`
+- `git tag VERSION -m 'Release VERSION'`
+- `git push`
+- `git push --tags`
+
+The tag pipeline of github actions will build the package and publish it to npm.
