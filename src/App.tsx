@@ -27,7 +27,8 @@ function App(): JSX.Element | null {
 	const [showApp3, setShowApp3] = useState(false);
 	const [showApp4, setShowApp4] = useState(false);
 	const [kill, setKill] = useState(false);
-	const rerender = useRerender(20);
+	const [renders, setRenders] = useState(20);
+	const rerender = useRerender(renders);
 	if (!REACT_APP_UX4IOT_CONNECTION_STRING) {
 		console.error('REACT_APP_UX4IOT_CONNECTION_STRING is missing.');
 		return null;
@@ -37,7 +38,14 @@ function App(): JSX.Element | null {
 
 	return (
 		<div key={reload} className="App">
-			<button onClick={() => setReload(reload === 0 ? 1 : 0)}>Reload</button>
+			<button
+				onClick={() => {
+					setReload(reload === 0 ? 1 : 0);
+					setRenders(renders + 20);
+				}}
+			>
+				Reload
+			</button>
 			{!kill && (
 				<Ux4iotContextProvider
 					options={{
