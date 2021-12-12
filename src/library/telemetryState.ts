@@ -7,6 +7,7 @@ export type ADD_DATA_ACTION = {
 	deviceId: string;
 	telemetryKey: string;
 	telemetryValue: unknown;
+	timestamp: Date | null;
 };
 
 export type TelemetryAction = ADD_DATA_ACTION;
@@ -17,12 +18,15 @@ export const telemetryReducer: Reducer<TelemetryState, TelemetryAction> = (
 ) => {
 	switch (action.type) {
 		case 'ADD_DATA': {
-			const { telemetryKey, telemetryValue, deviceId } = action;
+			const { telemetryKey, telemetryValue, deviceId, timestamp } = action;
 			const nextState = {
 				...state,
 				[deviceId]: {
 					...state[deviceId],
-					[telemetryKey]: telemetryValue,
+					[telemetryKey]: {
+						value: telemetryValue,
+						timestamp,
+					},
 				},
 			};
 			return nextState;
