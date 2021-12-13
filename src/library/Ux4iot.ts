@@ -204,7 +204,7 @@ export class Ux4iot {
 						deviceId === data.deviceId &&
 						telemetryKey === messageTelemetryKey
 					) {
-						callback(deviceId, data.telemetry);
+						callback(deviceId, data.telemetry, data.timestamp);
 					}
 				}
 			}

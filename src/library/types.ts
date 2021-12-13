@@ -67,7 +67,8 @@ export function isProdOptions(
 
 export type TelemetryCallback = (
 	deviceId: string,
-	value: Record<string, unknown>
+	value: Record<string, unknown>,
+	timestamp?: string
 ) => void;
 export type DeviceTwinCallback = (deviceId: string, deviceTwin: Twin) => void;
 export type ConnectionStateCallback = (

@@ -7,7 +7,7 @@ export type ADD_DATA_ACTION = {
 	deviceId: string;
 	telemetryKey: string;
 	telemetryValue: unknown;
-	timestamp: Date | null;
+	timestamp?: string;
 };
 
 export type TelemetryAction = ADD_DATA_ACTION;
