@@ -20,7 +20,7 @@ type DataCallback = (
 	deviceId: string,
 	telemetryKey: string,
 	telemetryValue: unknown,
-	timestamp?: string
+	timestamp: string | undefined
 ) => void;
 
 type UseMultiTelemetryOutput = {
@@ -59,9 +59,7 @@ export const useMultiTelemetry = (
 
 	const onTelemetry: TelemetryCallback = useCallback(
 		(deviceId, message, timestamp) => {
-
 			for (const [telemetryKey, telemetryValue] of Object.entries(message)) {
-
 				setTelemetry({
 					type: 'ADD_DATA',
 					deviceId,

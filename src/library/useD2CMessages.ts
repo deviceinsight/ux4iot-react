@@ -3,10 +3,12 @@ import { v4 as uuidv4 } from 'uuid';
 import { GrantErrorCallback, RawD2CMessageCallback } from './types';
 import { Ux4iotContext } from './Ux4iotContext';
 
+type DataCallback<T> = (data: T, timestamp: string | undefined) => void;
+
 export const useD2CMessages = <T>(
 	deviceId: string,
 	options: {
-		onData?: (data: T) => void;
+		onData?: DataCallback<T>;
 		onGrantError?: GrantErrorCallback;
 	} = {}
 ): T | undefined => {
@@ -23,9 +25,9 @@ export const useD2CMessages = <T>(
 	}, [onData, onGrantError]);
 
 	const onMessage: RawD2CMessageCallback = useCallback(
-		(deviceId: string, message: unknown) => {
+		(deviceId: string, message: unknown, timestamp: string | undefined) => {
 			setLastMessage(message as T);
-			onDataRef.current && onDataRef.current(message as T);
+			onDataRef.current && onDataRef.current(message as T, timestamp);
 		},
 		[]
 	);

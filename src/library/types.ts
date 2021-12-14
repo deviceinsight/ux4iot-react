@@ -77,7 +77,8 @@ export type ConnectionStateCallback = (
 ) => void;
 export type RawD2CMessageCallback = (
 	deviceId: string,
-	message: Record<string, unknown>
+	message: Record<string, unknown>,
+	timestamp?: string
 ) => void;
 
 export type PatchDesiredPropertiesOptions = Record<string, unknown>;

@@ -9,10 +9,13 @@ type Props = {
 };
 
 export const TestSubscriber: FC<Props> = ({ deviceId }) => {
+	const [ts, setTs] = useState<string | undefined>('');
 	const { telemetry, toggleTelemetry, isSubscribed } = useMultiTelemetry({
 		initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
-		onData: (deviceId, key, value) =>
-			console.log('useMultiTelemetry', deviceId, key, value),
+		onData: (deviceId, key, value, timestamp) => {
+			setTs(timestamp);
+			console.log('useMultiTelemetry', deviceId, key, value, timestamp);
+		},
 		onGrantError: error => console.log(error),
 	});
 	const [myState, setMyState] = useState<number>(0);
@@ -53,6 +56,9 @@ export const TestSubscriber: FC<Props> = ({ deviceId }) => {
 				})}
 				<div style={{ padding: 50 }}>
 					data: <pre>{JSON.stringify(telemetry, null, 2)}</pre>
+				</div>
+				<div>
+					Received at <pre>{ts}</pre>
 				</div>
 			</div>
 			<div style={{ width: '33.3%' }}>

@@ -3,15 +3,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { TelemetryCallback, GrantErrorCallback } from './types';
 import { Ux4iotContext } from './Ux4iotContext';
 
-type HookOptions = {
-	onData?: (data: unknown) => void;
+type DataCallback<T> = (data: T, timestamp: string | undefined) => void;
+
+type HookOptions<T> = {
+	onData?: DataCallback<T>;
 	onGrantError?: GrantErrorCallback;
 };
 
 export const useTelemetry = <T = any>(
 	deviceId: string,
 	telemetryKey: string,
-	options: HookOptions = {}
+	options: HookOptions<T> = {}
 ): T | undefined => {
 	const { onData, onGrantError } = options;
 	const ux4iot = useContext(Ux4iotContext);
@@ -26,11 +28,15 @@ export const useTelemetry = <T = any>(
 	}, [onData, onGrantError]);
 
 	const onTelemetry: TelemetryCallback = useCallback(
-		(deviceId: string, message: Record<string, unknown>) => {
+		(
+			deviceId: string,
+			message: Record<string, unknown>,
+			timestamp: string | undefined
+		) => {
 			const maybeValue = message[telemetryKey];
 			if (maybeValue) {
 				setValue(maybeValue as T);
-				onDataRef.current && onDataRef.current(maybeValue);
+				onDataRef.current && onDataRef.current(maybeValue as T, timestamp);
 			}
 		},
 		[telemetryKey]
