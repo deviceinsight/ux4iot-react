@@ -67,7 +67,8 @@ export function isProdOptions(
 
 export type TelemetryCallback = (
 	deviceId: string,
-	value: Record<string, unknown>
+	value: Record<string, unknown>,
+	timestamp?: string
 ) => void;
 export type DeviceTwinCallback = (deviceId: string, deviceTwin: Twin) => void;
 export type ConnectionStateCallback = (
@@ -76,7 +77,8 @@ export type ConnectionStateCallback = (
 ) => void;
 export type RawD2CMessageCallback = (
 	deviceId: string,
-	message: Record<string, unknown>
+	message: Record<string, unknown>,
+	timestamp?: string
 ) => void;
 
 export type PatchDesiredPropertiesOptions = Record<string, unknown>;

@@ -22,7 +22,7 @@ const useRerender = (n: number) => {
 
 function App(): JSX.Element | null {
 	const [reload, setReload] = useState(0);
-	const [showApp, setShowApp] = useState(true);
+	const [showApp, setShowApp] = useState(false);
 	const [showApp2, setShowApp2] = useState(false);
 	const [showApp3, setShowApp3] = useState(false);
 	const [showApp4, setShowApp4] = useState(false);

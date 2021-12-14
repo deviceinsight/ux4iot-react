@@ -19,7 +19,8 @@ import { Subscribers, TelemetryCallback, GrantErrorCallback } from './types';
 type DataCallback = (
 	deviceId: string,
 	telemetryKey: string,
-	telemetryValue: unknown
+	telemetryValue: unknown,
+	timestamp: string | undefined
 ) => void;
 
 type UseMultiTelemetryOutput = {
@@ -57,16 +58,17 @@ export const useMultiTelemetry = (
 	>(telemetryReducer, {});
 
 	const onTelemetry: TelemetryCallback = useCallback(
-		(deviceId, message) => {
+		(deviceId, message, timestamp) => {
 			for (const [telemetryKey, telemetryValue] of Object.entries(message)) {
 				setTelemetry({
 					type: 'ADD_DATA',
 					deviceId,
 					telemetryKey,
 					telemetryValue,
+					timestamp,
 				});
 				onDataRef.current &&
-					onDataRef.current(deviceId, telemetryKey, telemetryValue);
+					onDataRef.current(deviceId, telemetryKey, telemetryValue, timestamp);
 			}
 		},
 		[setTelemetry]

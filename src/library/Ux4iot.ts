@@ -204,7 +204,7 @@ export class Ux4iot {
 						deviceId === data.deviceId &&
 						telemetryKey === messageTelemetryKey
 					) {
-						callback(deviceId, data.telemetry);
+						callback(deviceId, data.telemetry, data.timestamp);
 					}
 				}
 			}
@@ -232,7 +232,7 @@ export class Ux4iot {
 			)) {
 				const { deviceId } = parseSubKey(subKey);
 				if (deviceId === data.deviceId) {
-					callback(deviceId, data.message);
+					callback(deviceId, data.message, data.timestamp);
 				}
 			}
 		}
@@ -322,6 +322,22 @@ export class Ux4iot {
 		await Promise.all(requests);
 	}
 
+	private async resubscribeRawD2CMessageSubscribers() {
+		const requests = Object.keys(this.rawD2CMessageSubscribers).map(subKey => {
+			const { subscriberId, deviceId } = parseSubKey(subKey);
+			const g = createRawD2CMessageGrant(this.sessionId, deviceId);
+
+			return this.grantRequestFunction(g).then(result => {
+				if (result !== GRANT_RESPONSES.GRANTED) {
+					const subKey = makeSubKey(subscriberId, deviceId);
+					delete this.telemetrySubscribers[subKey];
+				}
+			});
+		});
+
+		await Promise.all(requests);
+	}
+
 	private async resubscribeState() {
 		this.log(
 			'resubscribing to ',
@@ -329,7 +345,8 @@ export class Ux4iot {
 			this.deviceTwinSubscribers,
 			this.connectionStateSubscribers,
 			this.invokeDirectMethodGrants,
-			this.patchDesiredPropertiesGrants
+			this.patchDesiredPropertiesGrants,
+			this.rawD2CMessageSubscribers
 		);
 		await Promise.all([
 			this.resubscribeTelemetrySubscribers(),
@@ -337,6 +354,7 @@ export class Ux4iot {
 			this.resubscribeConnectionStateSubscribers(),
 			this.resubscribeDirectMethod(),
 			this.resubscribePatchDesiredProperties(),
+			this.resubscribeRawD2CMessageSubscribers(),
 		]);
 	}
 
