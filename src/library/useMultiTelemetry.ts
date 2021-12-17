@@ -12,6 +12,7 @@ import {
 	TelemetryAction,
 	telemetryReducer,
 	TelemetryState,
+	TelemetryValue as TV,
 } from './telemetryState';
 import { Ux4iotContext } from './Ux4iotContext';
 import { Subscribers, TelemetryCallback, GrantErrorCallback } from './types';
@@ -37,6 +38,8 @@ type HookOptions = {
 	onData?: DataCallback;
 	onGrantError?: GrantErrorCallback;
 };
+
+export type TelemetryValue = TV;
 
 export const useMultiTelemetry = (
 	options: HookOptions
