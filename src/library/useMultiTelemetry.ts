@@ -28,7 +28,7 @@ type UseMultiTelemetryOutput = {
 	removeTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;
 	toggleTelemetry: (deviceId: string, telemetryKey: string) => Promise<void>;
 	isSubscribed: (deviceId: string, telemetryKey: string) => boolean;
-	telemetry: Record<string, Record<string, unknown>>;
+	telemetry: TelemetryState;
 	currentSubscribers: Subscribers;
 };
 

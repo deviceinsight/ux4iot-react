@@ -1,6 +1,10 @@
 import { Reducer } from 'react';
 
-export type TelemetryState = Record<string, Record<string, unknown>>;
+export type TelemetryValue = {
+	value: unknown;
+	timestamp: string | undefined;
+};
+export type TelemetryState = Record<string, Record<string, TelemetryValue>>;
 
 export type ADD_DATA_ACTION = {
 	type: 'ADD_DATA';
