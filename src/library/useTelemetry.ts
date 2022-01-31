@@ -34,7 +34,7 @@ export const useTelemetry = <T = any>(
 			timestamp: string | undefined
 		) => {
 			const maybeValue = message[telemetryKey];
-			if (maybeValue) {
+			if (maybeValue !== undefined) {
 				setValue(maybeValue as T);
 				onDataRef.current && onDataRef.current(maybeValue as T, timestamp);
 			}
