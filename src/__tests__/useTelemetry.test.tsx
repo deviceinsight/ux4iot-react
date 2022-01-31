@@ -1,6 +1,6 @@
 import { TelemetryCallback, useTelemetry } from '../library';
 import { act, render, waitFor } from '@testing-library/react';
-import React, { useState } from 'react';
+import React, { FC, useState } from 'react';
 
 interface Ux4iotMock {
 	registered?: {
@@ -39,19 +39,21 @@ jest.mock('react', () => {
 const deviceId = 'sampleDevice';
 const telemetryKey = 'sampleTelemetryKey';
 
-export const BoolComponent = () => {
-	const [value, setValue] = useState<boolean | undefined>(undefined);
-
-	useTelemetry<boolean>(deviceId, telemetryKey, {
-		onData: data => {
-			setValue(data);
-		},
+export const BoolComponent: FC = () => {
+	const [customValue, setCustomValue] = useState<boolean>();
+	const value = useTelemetry<boolean>(deviceId, telemetryKey, {
+		onData: v => setCustomValue(v),
 	});
 
 	return (
-		<div data-testid="value">
-			{value === undefined ? 'undefined' : value ? 'true' : 'false'}
-		</div>
+		<>
+			<div data-testid="value">
+				{value === undefined ? 'undefined' : value ? 'true' : 'false'}
+			</div>
+			<div data-testid="customValue">
+				{customValue === undefined ? 'undefined' : value ? 'true' : 'false'}
+			</div>
+		</>
 	);
 };
 
@@ -59,24 +61,27 @@ describe('useTelemetry', () => {
 	it('handles boolean values', async () => {
 		const { queryByTestId } = render(<BoolComponent />);
 
-		await waitFor(() =>
-			expect(queryByTestId('value')).toHaveTextContent('undefined')
-		);
+		await waitFor(() => {
+			expect(queryByTestId('value')).toHaveTextContent('undefined');
+			expect(queryByTestId('customValue')).toHaveTextContent('undefined');
+		});
 
 		await act(async () =>
 			ux4iot.registered?.onTelemetry(deviceId, { sampleTelemetryKey: true })
 		);
 
-		await waitFor(() =>
-			expect(queryByTestId('value')).toHaveTextContent('true')
-		);
+		await waitFor(() => {
+			expect(queryByTestId('value')).toHaveTextContent('true');
+			expect(queryByTestId('customValue')).toHaveTextContent('true');
+		});
 
 		await act(async () =>
 			ux4iot.registered?.onTelemetry(deviceId, { sampleTelemetryKey: false })
 		);
 
-		await waitFor(() =>
-			expect(queryByTestId('value')).toHaveTextContent('false')
-		);
+		await waitFor(() => {
+			expect(queryByTestId('value')).toHaveTextContent('false');
+			expect(queryByTestId('customValue')).toHaveTextContent('false');
+		});
 	});
 });
