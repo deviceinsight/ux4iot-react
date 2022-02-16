@@ -330,7 +330,7 @@ export class Ux4iot {
 			return this.grantRequestFunction(g).then(result => {
 				if (result !== GRANT_RESPONSES.GRANTED) {
 					const subKey = makeSubKey(subscriberId, deviceId);
-					delete this.telemetrySubscribers[subKey];
+					delete this.rawD2CMessageSubscribers[subKey];
 				}
 			});
 		});
