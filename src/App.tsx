@@ -24,7 +24,7 @@ function App(): JSX.Element | null {
 	const [reload, setReload] = useState(0);
 	const [showApp, setShowApp] = useState(false);
 	const [showApp2, setShowApp2] = useState(false);
-	const [showApp3, setShowApp3] = useState(false);
+	const [showApp3, setShowApp3] = useState(true);
 	const [showApp4, setShowApp4] = useState(false);
 	const [kill, setKill] = useState(false);
 	const [renders, setRenders] = useState(20);
