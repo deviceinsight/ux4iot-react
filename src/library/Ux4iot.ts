@@ -91,6 +91,7 @@ export class Ux4iot {
 	grantRequestFunction: GrantRequestFunctionType;
 	axiosInstance: AxiosInstance;
 	devMode: boolean;
+	retryTimeoutAfterError = 0;
 
 	constructor(
 		ux4iotURL: string,
@@ -131,7 +132,7 @@ export class Ux4iot {
 				}
 			} catch (error) {
 				this.log(INIT_ERROR_MESSAGE);
-				setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
+				this.tryReconnect();
 			}
 		}
 	}
@@ -177,20 +178,23 @@ export class Ux4iot {
 
 	private onConnect() {
 		this.log(`Connected to ${this.ux4iotURL}`);
-		if (this.needsResubscribingAfterConnect) {
-			this.log('Successfully reconnected. Resubscribing to old state...');
-			this.resubscribeState();
-			this.needsResubscribingAfterConnect = false;
-		}
+		this.log('Successfully reconnected. Resubscribing to old state...');
+		clearTimeout(this.retryTimeoutAfterError);
+		this.resubscribeState();
 	}
 
 	private onErrorOrDisconnect(error: unknown) {
-		console.error(DISCONNECTED_MESSAGE, error);
+		this.log(DISCONNECTED_MESSAGE, error);
 		this.socket = undefined;
-		if (error === 'io server disconnect') {
-			this.needsResubscribingAfterConnect = true;
-			setTimeout(this.init.bind(this), RECONNECT_TIMEOUT);
-		}
+		this.tryReconnect();
+	}
+
+	private tryReconnect() {
+		clearTimeout(this.retryTimeoutAfterError);
+		this.retryTimeoutAfterError = setTimeout(
+			this.init.bind(this),
+			RECONNECT_TIMEOUT
+		) as unknown as number;
 	}
 
 	private async onData(data: Message) {
