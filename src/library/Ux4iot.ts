@@ -49,6 +49,7 @@ const DISCONNECTED_MESSAGE = `Disconnected / Error Connecting. Trying to reconne
 const INIT_ERROR_MESSAGE = `Failed to fetch sessionId of ux4iot. Attempting again in ${
 	RECONNECT_TIMEOUT / 1000
 } seconds.`;
+const CLIENT_DISCONNECTED_MESSAGE = 'Client manually disconnected';
 
 const defaultGrantRequestFunction = (
 	baseURL: string,
@@ -165,7 +166,7 @@ export class Ux4iot {
 	destroy(): void {
 		this.socket?.disconnect();
 		this.socket = undefined;
-		this.log('socket with id ', this.sessionId, ' destroyed');
+		this.log('socket with id', this.sessionId, 'destroyed');
 	}
 
 	private async initSessionId(): Promise<void | string> {
@@ -184,9 +185,13 @@ export class Ux4iot {
 	}
 
 	private onErrorOrDisconnect(error: unknown) {
-		this.log(DISCONNECTED_MESSAGE, error);
-		this.socket = undefined;
-		this.tryReconnect();
+		if (error === 'io client disconnect') {
+			this.log(CLIENT_DISCONNECTED_MESSAGE, error);
+		} else {
+			this.log(DISCONNECTED_MESSAGE, error);
+			this.socket = undefined;
+			this.tryReconnect();
+		}
 	}
 
 	private tryReconnect() {
