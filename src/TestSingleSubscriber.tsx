@@ -23,11 +23,13 @@ export const TestSingleSubscriber: FC<Props> = ({
 	return (
 		<div>
 			<h3>UseTelemetry</h3>
-			<div>{value}</div>
+			<div>{JSON.stringify(value)}</div>
 			<div>
 				Subscribed to deviceId {deviceId} and telemetryKey {datapointName}
 			</div>
-			<div>Value: {value}</div>
+			<div>
+				Value: <pre>{JSON.stringify(value)}</pre>
+			</div>
 			<div>
 				Received at <pre>{ts}</pre>
 			</div>
