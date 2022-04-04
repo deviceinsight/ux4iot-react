@@ -12,7 +12,7 @@
 		"type": "git"
 	},
 	"scripts": {
-		"dev": "vite",
+		"start": "vite",
 		"preview": "vite preview",
 		"build-react-app": "tsc && vite build",
 		"build": "tsc --project tsconfig-lib.json",
