@@ -6,7 +6,7 @@ import { TestSingleSubscriber } from './TestSingleSubscriber';
 import { TestRawD2CMessageSubscriber } from './TestRawD2CMessageSubscriber';
 import { TestSubscriber } from './TestSubscriber';
 
-const { REACT_APP_UX4IOT_CONNECTION_STRING } = process.env;
+const { VITE_UX4IOT_CONNECTION_STRING } = import.meta.env;
 
 const useRerender = (n: number) => {
 	const [counter, setCounter] = useState(0);
@@ -29,8 +29,8 @@ function App(): JSX.Element | null {
 	const [kill, setKill] = useState(false);
 	const [renders, setRenders] = useState(20);
 	const rerender = useRerender(renders);
-	if (!REACT_APP_UX4IOT_CONNECTION_STRING) {
-		console.error('REACT_APP_UX4IOT_CONNECTION_STRING is missing.');
+	if (!VITE_UX4IOT_CONNECTION_STRING) {
+		console.error('VITE_UX4IOT_CONNECTION_STRING is missing.');
 		return null;
 	}
 
@@ -49,7 +49,7 @@ function App(): JSX.Element | null {
 			{!kill && (
 				<Ux4iotContextProvider
 					options={{
-						adminConnectionString: REACT_APP_UX4IOT_CONNECTION_STRING,
+						adminConnectionString: VITE_UX4IOT_CONNECTION_STRING,
 					}}
 				>
 					<div>
