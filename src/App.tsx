@@ -24,7 +24,9 @@ function App(): JSX.Element | null {
 	const [reload, setReload] = useState(0);
 	const [showApp, setShowApp] = useState(false);
 	const [showApp2, setShowApp2] = useState(false);
-	const [showApp3, setShowApp3] = useState(false);
+	const [showTemperature, setShowTemperature] = useState(false);
+	const [showGeoposition, setShowGeoposition] = useState(false);
+	const [showNestedObject, setShowNestedObject] = useState(false);
 	const [showApp4, setShowApp4] = useState(false);
 	const [kill, setKill] = useState(false);
 	const [renders, setRenders] = useState(20);
@@ -75,13 +77,13 @@ function App(): JSX.Element | null {
 						)}
 					</div>
 					<div>
-						<label>Show App ?</label>
+						<label>Show Temperature Subscriber</label>
 						<input
 							type="checkbox"
-							checked={showApp3}
-							onChange={() => setShowApp3(!showApp3)}
+							checked={showTemperature}
+							onChange={() => setShowTemperature(!showTemperature)}
 						/>
-						{showApp3 && (
+						{showTemperature && (
 							<TestSingleSubscriber
 								deviceId="simulated-device"
 								datapointName="temperature"
@@ -89,7 +91,35 @@ function App(): JSX.Element | null {
 						)}
 					</div>
 					<div>
-						<label>Show App ?</label>
+						<label>Show Geoposition Subscriber</label>
+						<input
+							type="checkbox"
+							checked={showGeoposition}
+							onChange={() => setShowGeoposition(!showGeoposition)}
+						/>
+						{showGeoposition && (
+							<TestSingleSubscriber
+								deviceId="simulated-device"
+								datapointName="geoposition"
+							/>
+						)}
+					</div>
+					<div>
+						<label>Show Nested Object Subscriber</label>
+						<input
+							type="checkbox"
+							checked={showNestedObject}
+							onChange={() => setShowNestedObject(!showNestedObject)}
+						/>
+						{showNestedObject && (
+							<TestSingleSubscriber
+								deviceId="simulated-device"
+								datapointName="nestedobject"
+							/>
+						)}
+					</div>
+					<div>
+						<label>Show Raw Message Subscriber</label>
 						<input
 							type="checkbox"
 							checked={showApp4}
