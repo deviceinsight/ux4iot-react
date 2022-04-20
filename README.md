@@ -23,6 +23,7 @@ This library provides hooks for:
 - `useDirectMethod` - Execute a direct method on a device
 - `usePatchDesiredProperties` - Update the desired properties of the device twin
 - `useD2CMessages` - Use the raw messages sent by your devices
+- `useUx4iot` - Convenience hook to get the Ux4iot instance
 
 ## Prerequisites
 
