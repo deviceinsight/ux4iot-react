@@ -5,7 +5,9 @@ import { GrantErrorCallback } from './types';
 import { IoTHubResponse } from './ux4iot-shared';
 
 type UseDirectMethodOutput = (
-	payload: Record<string, unknown>
+	payload: Record<string, unknown>,
+	responseTimeoutInSeconds?: number,
+	connectTimeoutInSeconds?: number
 ) => Promise<IoTHubResponse | void>;
 
 type HookOptions = {
@@ -39,5 +41,11 @@ export const useDirectMethod = (
 		[ux4iot]
 	);
 
-	return payload => directMethod(deviceId, { methodName, payload });
+	return (payload, responseTimeoutInSeconds, connectTimeoutInSeconds) =>
+		directMethod(deviceId, {
+			methodName,
+			payload,
+			responseTimeoutInSeconds,
+			connectTimeoutInSeconds,
+		});
 };
