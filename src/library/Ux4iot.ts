@@ -180,7 +180,7 @@ export class Ux4iot {
 	private onConnect() {
 		this.log(`Connected to ${this.ux4iotURL}`);
 		this.log('Successfully reconnected. Resubscribing to old state...');
-		clearTimeout(this.retryTimeoutAfterError);
+		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		this.resubscribeState();
 	}
 
@@ -195,7 +195,7 @@ export class Ux4iot {
 	}
 
 	private tryReconnect() {
-		clearTimeout(this.retryTimeoutAfterError);
+		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		this.retryTimeoutAfterError = setTimeout(
 			this.init.bind(this),
 			RECONNECT_TIMEOUT
