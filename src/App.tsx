@@ -52,6 +52,9 @@ function App(): JSX.Element | null {
 				<Ux4iotContextProvider
 					options={{
 						adminConnectionString: VITE_UX4IOT_CONNECTION_STRING,
+						onSocketConnectionUpdate: (reason, description) => {
+							console.log(reason, description);
+						},
 					}}
 				>
 					<div>

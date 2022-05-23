@@ -44,9 +44,20 @@ export type GrantRequestFunctionType = (
 	grant: GrantRequest
 ) => Promise<GRANT_RESPONSES>;
 
-export type InitializationOptions =
-	| InitializeDevOptions
-	| InitializeProdOptions;
+export type ConnectionUpdateReason =
+	| 'socket_connect'
+	| 'socket_connect_error'
+	| 'socket_disconnect'
+	| 'ux4iot_unreachable';
+
+export type ConnectionUpdateFunction = (
+	reason: ConnectionUpdateReason,
+	description?: string
+) => void;
+
+export type InitializationOptions = {
+	onSocketConnectionUpdate?: ConnectionUpdateFunction;
+} & (InitializeDevOptions | InitializeProdOptions);
 export type InitializeDevOptions = {
 	adminConnectionString: string;
 };

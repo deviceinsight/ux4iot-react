@@ -24,6 +24,8 @@ import {
 	isProdOptions,
 	GrantErrorCallback,
 	GRANT_RESPONSES,
+	ConnectionUpdateReason,
+	ConnectionUpdateFunction,
 } from './types';
 import {
 	createTelemetryGrant,
@@ -93,11 +95,13 @@ export class Ux4iot {
 	axiosInstance: AxiosInstance;
 	devMode: boolean;
 	retryTimeoutAfterError = 0;
+	onSocketConnectionUpdate?: ConnectionUpdateFunction;
 
 	constructor(
 		ux4iotURL: string,
 		grantRequestFunction: GrantRequestFunctionType,
-		devMode = false
+		devMode = false,
+		onSocketConnectionUpdate?: ConnectionUpdateFunction
 	) {
 		this.ux4iotURL = ux4iotURL;
 		this.grantRequestFunction = grantRequestFunction;
@@ -111,6 +115,7 @@ export class Ux4iot {
 			baseURL: ux4iotURL,
 		});
 		this.devMode = devMode;
+		this.onSocketConnectionUpdate = onSocketConnectionUpdate;
 	}
 
 	private log(...args: any[]) {
@@ -121,43 +126,60 @@ export class Ux4iot {
 
 	private async init(): Promise<void> {
 		if (!this.socket) {
+			let sessionId;
 			try {
-				await this.initSessionId();
-				if (this.sessionId) {
-					const socketURI = `${this.ux4iotURL}?sessionId=${this.sessionId}`;
-					this.socket = io(socketURI);
-					this.socket.on('connect', this.onConnect.bind(this));
-					this.socket.on('connect_error', this.onErrorOrDisconnect.bind(this));
-					this.socket.on('disconnect', this.onErrorOrDisconnect.bind(this));
-					this.socket.on('data', this.onData.bind(this));
-				}
+				const response = await this.axiosInstance.post('/session');
+				sessionId = sessionId = response.data.sessionId;
 			} catch (error) {
+				this.onSocketConnectionUpdate &&
+					this.onSocketConnectionUpdate(
+						'ux4iot_unreachable',
+						INIT_ERROR_MESSAGE
+					);
 				this.log(INIT_ERROR_MESSAGE);
 				this.tryReconnect();
+				return;
+			}
+			if (sessionId) {
+				this.sessionId = sessionId;
+				const socketURI = `${this.ux4iotURL}?sessionId=${this.sessionId}`;
+				this.socket = io(socketURI);
+				this.socket.on('connect', this.onConnect.bind(this));
+				this.socket.on('connect_error', this.onConnectError.bind(this));
+				this.socket.on('disconnect', this.onDisconnect.bind(this));
+				this.socket.on('data', this.onData.bind(this));
 			}
 		}
 	}
 
 	static async create(options: InitializationOptions): Promise<Ux4iot> {
-		let instance;
+		let instance, endpoint, requestFunc, devMode;
+		const { onSocketConnectionUpdate } = options;
+
 		if (isDevOptions(options)) {
 			printDevModeWarning();
 			const { Endpoint, SharedAccessKey } = parseConnectionString(
 				options.adminConnectionString
 			);
-			instance = new Ux4iot(
-				Endpoint,
-				defaultGrantRequestFunction(Endpoint, SharedAccessKey),
-				true
-			);
+			endpoint = Endpoint;
+			requestFunc = defaultGrantRequestFunction(Endpoint, SharedAccessKey);
+			devMode = true;
 		} else if (isProdOptions(options)) {
 			const { ux4iotURL, grantRequestFunction } = options;
-			instance = new Ux4iot(ux4iotURL, grantRequestFunction);
+			endpoint = ux4iotURL;
+			requestFunc = grantRequestFunction;
+			devMode = false;
 		} else {
 			throw new Error(
 				'Insufficient arguments when trying to create Ux4iot instance'
 			);
 		}
+		instance = new Ux4iot(
+			endpoint,
+			requestFunc,
+			devMode,
+			onSocketConnectionUpdate
+		);
 		await instance.init();
 
 		return instance;
@@ -166,29 +188,44 @@ export class Ux4iot {
 	destroy(): void {
 		this.socket?.disconnect();
 		this.socket = undefined;
+		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		this.log('socket with id', this.sessionId, 'destroyed');
-	}
-
-	private async initSessionId(): Promise<void | string> {
-		const response = await this.axiosInstance.post('/session');
-
-		if (response.data) {
-			this.sessionId = response.data.sessionId;
-		}
 	}
 
 	private onConnect() {
 		this.log(`Connected to ${this.ux4iotURL}`);
 		this.log('Successfully reconnected. Resubscribing to old state...');
+		this.onSocketConnectionUpdate &&
+			this.onSocketConnectionUpdate('socket_connect');
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		this.resubscribeState();
 	}
 
-	private onErrorOrDisconnect(error: unknown) {
+	private onConnectError() {
+		this.log(`Failed to establish websocket to ${this.ux4iotURL}`);
+		this.onSocketConnectionUpdate &&
+			this.onSocketConnectionUpdate(
+				'socket_connect_error',
+				DISCONNECTED_MESSAGE
+			);
+		this.tryReconnect();
+	}
+
+	private onDisconnect(error: unknown) {
 		if (error === 'io client disconnect') {
 			this.log(CLIENT_DISCONNECTED_MESSAGE, error);
+			this.onSocketConnectionUpdate &&
+				this.onSocketConnectionUpdate(
+					'socket_disconnect',
+					CLIENT_DISCONNECTED_MESSAGE
+				);
 		} else {
 			this.log(DISCONNECTED_MESSAGE, error);
+			this.onSocketConnectionUpdate &&
+				this.onSocketConnectionUpdate(
+					'socket_disconnect',
+					DISCONNECTED_MESSAGE
+				);
 			this.socket = undefined;
 			this.tryReconnect();
 		}
