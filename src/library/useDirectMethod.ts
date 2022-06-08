@@ -1,8 +1,8 @@
-import { DeviceMethodParams } from 'azure-iothub';
-import { useCallback, useContext, useEffect, useRef } from 'react';
-import { Ux4iotContext } from './Ux4iotContext';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { useUx4iot } from './Ux4iotContext';
 import { GrantErrorCallback } from './types';
 import { IoTHubResponse } from './ux4iot-shared';
+import { DirectMethodGrantable } from './data/DirectMethodGrantable';
 
 type UseDirectMethodOutput = (
 	payload: Record<string, unknown>,
@@ -16,36 +16,42 @@ type HookOptions = {
 
 export const useDirectMethod = (
 	deviceId: string,
-	methodName: string,
+	directMethodName: string,
 	options: HookOptions = {}
 ): UseDirectMethodOutput => {
 	const { onGrantError } = options;
-	const ux4iot = useContext(Ux4iotContext);
+	const ux4iot = useUx4iot();
 	const onGrantErrorRef = useRef(onGrantError);
+	const [grantable, setGrantable] = useState<DirectMethodGrantable>();
 
 	useEffect(() => {
 		onGrantErrorRef.current = onGrantError;
 	}, [onGrantError]);
 
+	useEffect(() => {
+		const g = ux4iot.addDirectMethodGrantable({
+			deviceId,
+			directMethodName,
+			onGrantError: onGrantErrorRef.current,
+		});
+		setGrantable(g);
+	}, [deviceId, directMethodName, ux4iot]);
+
 	const directMethod = useCallback(
 		async (
-			deviceId: string,
-			options: DeviceMethodParams
-		): Promise<IoTHubResponse | void> => {
-			return await ux4iot?.invokeDirectMethod(
-				deviceId,
-				options,
-				onGrantErrorRef.current
-			);
-		},
-		[ux4iot]
-	);
-
-	return (payload, responseTimeoutInSeconds, connectTimeoutInSeconds) =>
-		directMethod(deviceId, {
-			methodName,
 			payload,
 			responseTimeoutInSeconds,
-			connectTimeoutInSeconds,
-		});
+			connectTimeoutInSeconds
+		): Promise<IoTHubResponse | void> => {
+			return await grantable?.invokeDirectMethod({
+				methodName: directMethodName,
+				payload,
+				responseTimeoutInSeconds,
+				connectTimeoutInSeconds,
+			});
+		},
+		[directMethodName, grantable]
+	);
+
+	return directMethod;
 };

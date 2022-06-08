@@ -1,5 +1,10 @@
 import { Twin } from 'azure-iothub';
 
+export type TwinUpdate = {
+	version: number;
+	properties: Twin['properties'];
+};
+
 export type DeviceId = string;
 
 // Requests
@@ -36,6 +41,30 @@ export type GrantRequest =
 	| DirectMethodGrantRequest
 	| RawD2CMessageGrantRequest;
 
+type SubscriptionRequestBase<T> = {
+	deviceId: string;
+	sessionId: string;
+} & T;
+export type TelemetrySubscriptionRequest = SubscriptionRequestBase<{
+	type: 'telemetry';
+	telemetryKey: string; // null means: Access to all telemetry keys
+}>;
+export type DeviceTwinSubscriptionRequest = SubscriptionRequestBase<{
+	type: 'deviceTwin';
+}>;
+export type ConnectionStateSubscriptionRequest = SubscriptionRequestBase<{
+	type: 'connectionState';
+}>;
+export type RawD2CMessageSubscriptionRequest = SubscriptionRequestBase<{
+	type: 'rawD2CMessages';
+}>;
+
+export type SubscriptionRequest =
+	| TelemetrySubscriptionRequest // null means: Access to all telemetry keysS
+	| DeviceTwinSubscriptionRequest
+	| ConnectionStateSubscriptionRequest
+	| RawD2CMessageSubscriptionRequest;
+
 export type ConnectionState = {
 	connected: boolean;
 };
@@ -54,7 +83,7 @@ export type ConnectionStateMessage = MessageBase<{
 }>;
 
 export type DeviceTwinMessage = MessageBase<{
-	deviceTwin: Twin;
+	deviceTwin: TwinUpdate;
 }>;
 
 export type RawD2CMessage = MessageBase<{

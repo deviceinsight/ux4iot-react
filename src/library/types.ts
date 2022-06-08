@@ -1,35 +1,4 @@
-import { Twin } from 'azure-iothub';
-import {
-	ConnectionStateMessage,
-	DeviceTwinMessage,
-	GrantRequest,
-	RawD2CMessage,
-	TelemetryMessage,
-} from './ux4iot-shared';
-
-export function isTelemetryMessage(
-	message: Record<string, unknown>
-): message is TelemetryMessage {
-	return !!message.telemetry;
-}
-
-export function isDeviceTwinMessage(
-	message: Record<string, unknown>
-): message is DeviceTwinMessage {
-	return !!message.deviceTwin;
-}
-
-export function isConnectionStateMessage(
-	message: Record<string, unknown>
-): message is ConnectionStateMessage {
-	return !!message.connectionState;
-}
-
-export function isRawMessage(
-	message: Record<string, unknown>
-): message is RawD2CMessage {
-	return !!message.message;
-}
+import { GrantRequest, TwinUpdate } from './ux4iot-shared';
 
 export type Subscribers = Record<string, string[]>;
 
@@ -81,17 +50,27 @@ export type TelemetryCallback = (
 	value: Record<string, unknown>,
 	timestamp?: string
 ) => void;
-export type DeviceTwinCallback = (deviceId: string, deviceTwin: Twin) => void;
+export type DeviceTwinCallback = (
+	deviceId: string,
+	deviceTwin: TwinUpdate
+) => void;
 export type ConnectionStateCallback = (
 	deviceId: string,
 	connectionState: boolean
 ) => void;
-export type RawD2CMessageCallback = (
+export type D2CMessageCallback = (
 	deviceId: string,
 	message: Record<string, unknown>,
 	timestamp?: string
 ) => void;
 
+export type MessageCallback =
+	| TelemetryCallback
+	| DeviceTwinCallback
+	| ConnectionStateCallback
+	| D2CMessageCallback;
+
 export type PatchDesiredPropertiesOptions = Record<string, unknown>;
 
 export type GrantErrorCallback = (error: GRANT_RESPONSES) => void;
+export type SubscriptionErrorCallback = (error: any) => void;

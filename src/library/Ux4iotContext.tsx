@@ -2,48 +2,53 @@ import {
 	ComponentType,
 	createContext,
 	ReactNode,
+	useContext,
 	useEffect,
 	useRef,
-	useState,
 } from 'react';
+import { GrantableState } from './state/GrantableState';
 import { InitializationOptions } from './types';
 import { Ux4iot } from './Ux4iot';
-
-type Ux4iotContextProps = Ux4iot | undefined;
 
 type Ux4iotProviderProps = {
 	options: InitializationOptions;
 	children?: ReactNode;
 };
 
-export const Ux4iotContext = createContext<Ux4iotContextProps>(undefined);
+let ux4iotInstance: Ux4iot;
 
+export const Ux4iotContext = createContext<Ux4iot | undefined>(undefined);
 export const Ux4iotContextProvider: ComponentType<Ux4iotProviderProps> = ({
 	options,
 	children,
 }) => {
-	const [ux4iot, setUx4iot] = useState<Ux4iot>();
-	const initializing = useRef(false);
+	const ux4iot = useRef<Ux4iot>(ux4iotInstance || new Ux4iot(options));
+	if (!ux4iotInstance) {
+		ux4iotInstance = ux4iot.current;
+	}
 
 	useEffect(() => {
-		async function initialize() {
-			if (!ux4iot && !initializing.current) {
-				initializing.current = true;
-				const instance = await Ux4iot.create(options);
-				setUx4iot(instance);
-				initializing.current = false;
-			}
-		}
-		initialize();
-	}, [options, ux4iot]);
-
-	useEffect(() => {
+		const ux4iotInstance = ux4iot.current;
 		return () => {
-			ux4iot?.destroy();
+			ux4iotInstance.destroy();
 		};
-	}, [ux4iot]);
+	}, []);
 
 	return (
-		<Ux4iotContext.Provider value={ux4iot}>{children}</Ux4iotContext.Provider>
+		<Ux4iotContext.Provider value={ux4iot.current}>
+			{children}
+		</Ux4iotContext.Provider>
 	);
 };
+
+export function useUx4iot(): GrantableState {
+	const ux4iot = useContext(Ux4iotContext);
+
+	if (ux4iot === undefined) {
+		throw new Error(
+			'ux4iot-react hooks must be used within a Ux4iotContextProvider'
+		);
+	}
+
+	return ux4iot.grantableState;
+}

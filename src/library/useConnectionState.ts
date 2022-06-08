@@ -1,28 +1,36 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { ConnectionStateCallback, GrantErrorCallback } from './types';
-import { Ux4iotContext } from './Ux4iotContext';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ConnectionStateSubscription } from './data/ConnectionStateSubscription';
+import {
+	ConnectionStateCallback,
+	GrantErrorCallback,
+	SubscriptionErrorCallback,
+} from './types';
+import { useUx4iot } from './Ux4iotContext';
 
 type HookOptions = {
 	onData?: (connectionState: boolean) => void;
 	onGrantError?: GrantErrorCallback;
+	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
 export const useConnectionState = (
 	deviceId: string,
 	options: HookOptions = {}
 ): boolean | undefined => {
-	const { onData, onGrantError } = options;
-	const ux4iot = useContext(Ux4iotContext);
+	const { onData, onGrantError, onSubscriptionError } = options;
+	const ux4iot = useUx4iot();
+	const [subscription, setSubscription] =
+		useState<ConnectionStateSubscription>();
 	const [connectionState, setConnectionState] = useState<boolean>();
-	const subscriberIdRef = useRef(uuidv4());
 	const onDataRef = useRef(onData);
 	const onGrantErrorRef = useRef(onGrantError);
+	const onSubscriptionErrorRef = useRef(onSubscriptionError);
 
 	useEffect(() => {
 		onDataRef.current = onData;
 		onGrantErrorRef.current = onGrantError;
-	}, [onData, onGrantError]);
+		onSubscriptionErrorRef.current = onSubscriptionError;
+	}, [onData, onGrantError, onSubscriptionError]);
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
 		(deviceId, state) => {
@@ -33,27 +41,20 @@ export const useConnectionState = (
 	);
 
 	useEffect(() => {
-		const id = subscriberIdRef.current;
-		ux4iot?.registerConnectionStateSubscriber(
-			id,
+		const s = ux4iot.addConnectionStateSubscription({
 			deviceId,
-			onConnectionState,
-			onGrantErrorRef.current
-		);
-
-		return () => {
-			ux4iot?.unregisterConnectionStateSubscriber(id, deviceId);
-		};
-	}, [deviceId, onConnectionState, ux4iot]);
+			onDataCallback: onConnectionState,
+			onGrantError: onGrantErrorRef.current,
+			onSubscriptionError: onSubscriptionErrorRef.current,
+		});
+		setSubscription(s);
+	}, [ux4iot, deviceId, onConnectionState]);
 
 	useEffect(() => {
-		const ux4iotInstance = ux4iot;
-		const id = subscriberIdRef.current;
-
 		return () => {
-			ux4iotInstance?.cleanupSubscriberId(id);
+			ux4iot.removeGrantable(subscription);
 		};
-	}, [ux4iot]);
+	}, [ux4iot, subscription]);
 
 	return connectionState;
 };
