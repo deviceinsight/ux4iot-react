@@ -11,7 +11,6 @@ import {
 	TelemetryAction,
 	telemetryReducer,
 	TelemetryState,
-	TelemetryValue as TV,
 } from './state/telemetryState';
 import { useUx4iot } from './Ux4iotContext';
 import {
@@ -47,7 +46,7 @@ export const useMultiTelemetry = (
 ): UseMultiTelemetryOutput => {
 	const { onData, onGrantError, onSubscriptionError, initialSubscribers } =
 		options;
-	const { ux4iot, sessionId } = useUx4iot();
+	const { ux4iot } = useUx4iot();
 	const [currentSubscribers, setCurrentSubscribers] = useState<Subscribers>({});
 	const onDataRef = useRef(onData);
 	const onGrantErrorRef = useRef(onGrantError);

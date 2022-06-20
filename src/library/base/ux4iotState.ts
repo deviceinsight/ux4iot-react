@@ -98,8 +98,6 @@ export function resetState() {
 	state.subscriptions = {};
 }
 
-window.ux4iotState = state;
-
 export function hasSubscription(
 	subscriberId: string,
 	subscriptionRequest: SubscriptionRequest
