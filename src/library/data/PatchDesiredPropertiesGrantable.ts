@@ -1,4 +1,7 @@
-import { DesiredPropertyGrantRequest, IoTHubResponse } from '../ux4iot-shared';
+import {
+	DesiredPropertyGrantRequest,
+	IoTHubResponse,
+} from '../base/ux4iot-shared';
 import { Grantable, GrantableArgs } from './Grantable';
 
 export type PatchDesiredPropertiesArgs = GrantableArgs;

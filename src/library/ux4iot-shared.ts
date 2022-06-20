@@ -56,7 +56,7 @@ export type ConnectionStateSubscriptionRequest = SubscriptionRequestBase<{
 	type: 'connectionState';
 }>;
 export type RawD2CMessageSubscriptionRequest = SubscriptionRequestBase<{
-	type: 'rawD2CMessages';
+	type: 'd2cMessages';
 }>;
 
 export type SubscriptionRequest =

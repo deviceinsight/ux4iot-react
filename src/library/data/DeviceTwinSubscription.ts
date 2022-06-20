@@ -4,7 +4,7 @@ import {
 	DeviceTwinGrantRequest,
 	DeviceTwinSubscriptionRequest,
 	Message,
-} from '../ux4iot-shared';
+} from '../base/ux4iot-shared';
 
 import { Subscription, SubscriptionArgs } from './Subscription';
 

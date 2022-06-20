@@ -4,14 +4,8 @@ import {
 	RawD2CMessageGrantRequest,
 	RawD2CMessageSubscriptionRequest,
 	Message,
-} from '../ux4iot-shared';
+} from '../base/ux4iot-shared';
 import { Subscription, SubscriptionArgs } from './Subscription';
-
-function isRawMessage(
-	message: Record<string, unknown>
-): message is RawD2CMessage {
-	return !!message.message;
-}
 
 export type D2CMessageArgs = SubscriptionArgs & {
 	onDataCallback: D2CMessageCallback;

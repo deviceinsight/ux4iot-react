@@ -1,6 +1,6 @@
 export * from './ux4iot-shared';
 export * from './types';
-export * from './Ux4iot';
+export * from './base/Ux4iot';
 export * from './Ux4iotContext';
 export * from './useMultiTelemetry';
 export * from './useTelemetry';

@@ -12,9 +12,9 @@ export const TestSubscriber: FC<Props> = ({ deviceId }) => {
 	const [ts, setTs] = useState<string | undefined>('');
 	const { telemetry, toggleTelemetry, isSubscribed } = useMultiTelemetry({
 		initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
-		onData: (deviceId, key, value, timestamp) => {
+		onData: (deviceId, message, timestamp) => {
 			setTs(timestamp);
-			console.log('useMultiTelemetry', deviceId, key, value, timestamp);
+			console.log('useMultiTelemetry', deviceId, message, timestamp);
 		},
 		onGrantError: error => console.log(error),
 	});

@@ -6,6 +6,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
+import { v4 as uuid } from 'uuid';
 import {
 	TelemetryAction,
 	telemetryReducer,
@@ -19,14 +20,7 @@ import {
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
 } from './types';
-import { TelemetrySubscription } from './data/TelemetrySubscription';
-
-type DataCallback = (
-	deviceId: string,
-	telemetryKey: string,
-	telemetryValue: unknown,
-	timestamp: string | undefined
-) => void;
+import { TelemetrySubscriptionRequest } from './ux4iot-shared';
 
 type UseMultiTelemetryOutput = {
 	addTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;
@@ -39,40 +33,26 @@ type UseMultiTelemetryOutput = {
 
 type HookOptions = {
 	initialSubscribers?: Subscribers;
-	onData?: DataCallback;
+	onData?: (
+		deviceId: string,
+		data: Record<string, unknown>,
+		timestamp: string | undefined
+	) => void;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
-
-export type TelemetryValue = TV;
-
-function serializeSubscribers(
-	subscriptions: TelemetrySubscription[]
-): Subscribers {
-	const subscribers: Subscribers = {};
-
-	for (const { deviceId, telemetryKey } of subscriptions) {
-		if (subscribers[deviceId]) {
-			subscribers[deviceId].push(telemetryKey);
-		} else {
-			subscribers[deviceId] = [telemetryKey];
-		}
-	}
-
-	return subscribers;
-}
 
 export const useMultiTelemetry = (
 	options: HookOptions
 ): UseMultiTelemetryOutput => {
 	const { onData, onGrantError, onSubscriptionError, initialSubscribers } =
 		options;
-	const ux4iot = useUx4iot();
+	const { ux4iot, sessionId } = useUx4iot();
 	const [currentSubscribers, setCurrentSubscribers] = useState<Subscribers>({});
 	const onDataRef = useRef(onData);
 	const onGrantErrorRef = useRef(onGrantError);
 	const onSubscriptionErrorRef = useRef(onSubscriptionError);
-	const subscriptionsRef = useRef<TelemetrySubscription[]>([]);
+	const subscriptionId = useRef<string>(uuid());
 
 	useEffect(() => {
 		onDataRef.current = onData;
@@ -86,98 +66,87 @@ export const useMultiTelemetry = (
 
 	const onTelemetry: TelemetryCallback = useCallback(
 		(deviceId, message, timestamp) => {
-			for (const [telemetryKey, telemetryValue] of Object.entries(message)) {
-				setTelemetry({
-					type: 'ADD_DATA',
-					deviceId,
-					telemetryKey,
-					telemetryValue,
-					timestamp,
-				});
-				onDataRef.current &&
-					onDataRef.current(deviceId, telemetryKey, telemetryValue, timestamp);
-			}
+			setTelemetry({ type: 'ADD_DATA', deviceId, message, timestamp });
+			onDataRef.current && onDataRef.current(deviceId, message, timestamp);
 		},
 		[setTelemetry]
 	);
 
+	function getSubscriptionRequest(deviceId: string, telemetryKey: string) {
+		return {
+			deviceId,
+			telemetryKey,
+			type: 'telemetry',
+		} as TelemetrySubscriptionRequest;
+	}
+
 	const addTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {
-			for (const telemetryKey of telemetryKeys) {
-				const subscription = ux4iot.addTelemetrySubscription({
-					deviceId,
-					telemetryKey,
-					onDataCallback: onTelemetry,
-					onGrantError: onGrantErrorRef.current,
-					onSubscriptionError: onSubscriptionErrorRef.current,
-				});
-				const nextSubscriptions = [...subscriptionsRef.current, subscription];
-				subscriptionsRef.current = nextSubscriptions;
-				setCurrentSubscribers(serializeSubscribers(nextSubscriptions));
+			for (const key of telemetryKeys) {
+				await ux4iot.subscribe(
+					subscriptionId.current,
+					getSubscriptionRequest(deviceId, key),
+					onTelemetry,
+					onSubscriptionErrorRef.current,
+					onGrantErrorRef.current
+				);
 			}
+			setCurrentSubscribers(
+				ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
+			);
 		},
 		[ux4iot, onTelemetry]
 	);
 
 	const removeTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {
-			let nextSubscriptions = [...subscriptionsRef.current];
-			for (const telemetryKey of telemetryKeys) {
-				const subscription = subscriptionsRef.current.find(
-					s => s.deviceId === deviceId && s.telemetryKey === telemetryKey
+			for (const key of telemetryKeys) {
+				await ux4iot.unsubscribe(
+					subscriptionId.current,
+					getSubscriptionRequest(deviceId, key),
+					onSubscriptionErrorRef.current,
+					onGrantErrorRef.current
 				);
-				ux4iot.removeGrantable(subscription);
-				nextSubscriptions = nextSubscriptions.filter(s => s !== subscription);
 			}
-			subscriptionsRef.current = nextSubscriptions;
-			setCurrentSubscribers(serializeSubscribers(nextSubscriptions));
+			setCurrentSubscribers(
+				ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
+			);
 		},
 		[ux4iot]
 	);
 
 	const toggleTelemetry = useCallback(
 		async (deviceId: string, telemetryKey: string) => {
-			const subscription = subscriptionsRef.current.find(
-				s => s.deviceId === deviceId && s.telemetryKey === telemetryKey
-			);
-			if (subscription) {
-				removeTelemetry(deviceId, [telemetryKey]);
-			} else {
-				addTelemetry(deviceId, [telemetryKey]);
-			}
+			ux4iot.hasSubscription(
+				subscriptionId.current,
+				getSubscriptionRequest(deviceId, telemetryKey)
+			)
+				? await removeTelemetry(deviceId, [telemetryKey])
+				: await addTelemetry(deviceId, [telemetryKey]);
 		},
-		[addTelemetry, removeTelemetry]
+		[ux4iot, addTelemetry, removeTelemetry]
 	);
 
 	const isSubscribed = useCallback(
 		(deviceId: string, telemetryKey: string): boolean => {
-			const subscription = subscriptionsRef.current.find(
-				s => s.deviceId === deviceId && s.telemetryKey === telemetryKey
+			return !!ux4iot.hasSubscription(
+				subscriptionId.current,
+				getSubscriptionRequest(deviceId, telemetryKey)
 			);
-
-			return subscription !== undefined;
 		},
-		[]
+		[ux4iot]
 	);
 
 	useEffect(() => {
 		if (ux4iot && initialSubscribers) {
-			const initial = [];
 			for (const [deviceId, telemetryKeys] of Object.entries(
 				initialSubscribers
 			)) {
-				for (const telemetryKey of telemetryKeys) {
-					const subscription = ux4iot.addTelemetrySubscription({
-						deviceId,
-						telemetryKey,
-						onDataCallback: onTelemetry,
-						onGrantError: onGrantErrorRef.current,
-						onSubscriptionError: onSubscriptionErrorRef.current,
-					});
-					initial.push(subscription);
-				}
+				addTelemetry(deviceId, telemetryKeys);
 			}
-			subscriptionsRef.current = initial;
+			setCurrentSubscribers(
+				ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
+			);
 		}
 		/*
 		 * Intentionally omitting initialSubscribers and onTelemetry to prevent
@@ -186,8 +155,12 @@ export const useMultiTelemetry = (
 	}, []); // eslint-disable-line
 
 	useEffect(() => {
+		const subId = subscriptionId.current;
 		return () => {
-			subscriptionsRef.current.forEach(s => ux4iot.removeGrantable(s));
+			async function cleanup() {
+				await ux4iot.removeSubscriberId(subId);
+			}
+			cleanup();
 		};
 	}, [ux4iot]);
 

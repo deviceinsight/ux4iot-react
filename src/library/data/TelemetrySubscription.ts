@@ -5,7 +5,7 @@ import {
 	TelemetryGrantRequest,
 	TelemetryMessage,
 	TelemetrySubscriptionRequest,
-} from '../ux4iot-shared';
+} from '../base/ux4iot-shared';
 
 export function isTelemetryMessage(
 	message: Record<string, unknown>
@@ -18,7 +18,7 @@ export type TelemetryArgs = SubscriptionArgs & {
 	telemetryKeys: string[];
 };
 
-export class TelemetrySubscription extends Subscription {
+export class TelemetrySubscriber extends Subscription {
 	telemetryKeys: string[];
 	onDataCallback: TelemetryCallback;
 
@@ -51,12 +51,35 @@ export class TelemetrySubscription extends Subscription {
 				for (const [key, value] of Object.entries(data.telemetry))
 					if (this.telemetryKeys.includes(key)) outMessage[key] = value;
 
-				this.onDataCallback(this.deviceId, data.telemetry, data.timestamp);
+				this.onDataCallback(this.deviceId, outMessage, data.timestamp);
+			}
+		}
+	}
+
+	//@override
+	public async subscribe() {
+		if (this.isSubscribed) {
+			return;
+		}
+		if (!this.granted) await this.askForGrant();
+		if (this.granted) {
+			try {
+				await this.api.subscribe(this.createSubscription());
+				this.isSubscribed = true;
+			} catch (error) {
+				this.onSubscriptionError && this.onSubscriptionError(error);
 			}
 		}
 	}
 
 	addTelemetry(telemetryKeys: string[]) {
+		// check telemetryKeys array for 0 length
+		// request grant for telemetryKeys
+		// if success
+		//   - make subscription request
+		//   - add telemetryKeys to object instance "this.telemetryKeys"
+		// else call onGrantError
+
 		if (telemetryKeys.length === 0) {
 			return;
 		}

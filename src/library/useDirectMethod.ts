@@ -1,8 +1,12 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useUx4iot } from './Ux4iotContext';
 import { GrantErrorCallback } from './types';
-import { IoTHubResponse } from './ux4iot-shared';
-import { DirectMethodGrantable } from './data/DirectMethodGrantable';
+import {
+	DesiredPropertyGrantRequest,
+	DirectMethodGrantRequest,
+	IoTHubResponse,
+} from './ux4iot-shared';
+import { PatchDesiredPropertiesGrantable } from './data/PatchDesiredPropertiesGrantable';
 
 type UseDirectMethodOutput = (
 	payload: Record<string, unknown>,
@@ -20,22 +24,13 @@ export const useDirectMethod = (
 	options: HookOptions = {}
 ): UseDirectMethodOutput => {
 	const { onGrantError } = options;
-	const ux4iot = useUx4iot();
+	const { ux4iot, sessionId } = useUx4iot();
 	const onGrantErrorRef = useRef(onGrantError);
-	const [grantable, setGrantable] = useState<DirectMethodGrantable>();
 
 	useEffect(() => {
 		onGrantErrorRef.current = onGrantError;
 	}, [onGrantError]);
-
-	useEffect(() => {
-		const g = ux4iot.addDirectMethodGrantable({
-			deviceId,
-			directMethodName,
-			onGrantError: onGrantErrorRef.current,
-		});
-		setGrantable(g);
-	}, [deviceId, directMethodName, ux4iot]);
+	console.log('useDirectMethod', deviceId, directMethodName, ux4iot);
 
 	const directMethod = useCallback(
 		async (
@@ -43,14 +38,28 @@ export const useDirectMethod = (
 			responseTimeoutInSeconds,
 			connectTimeoutInSeconds
 		): Promise<IoTHubResponse | void> => {
-			return await grantable?.invokeDirectMethod({
-				methodName: directMethodName,
-				payload,
-				responseTimeoutInSeconds,
-				connectTimeoutInSeconds,
-			});
+			if (sessionId) {
+				// grantRequest: DirectMethodGrantRequest,
+				// onGrantError: GrantErrorCallback,
+				// options: DeviceMethodParams
+				const req: Omit<DirectMethodGrantRequest, 'sessionId'> = {
+					deviceId,
+					directMethodName,
+					grantType: 'invokeDirectMethod',
+				};
+				return await ux4iot.invokeDirectMethod(
+					req,
+					{
+						methodName: directMethodName,
+						payload,
+						responseTimeoutInSeconds,
+						connectTimeoutInSeconds,
+					},
+					onGrantErrorRef.current
+				);
+			}
 		},
-		[directMethodName, grantable]
+		[ux4iot, sessionId, deviceId, directMethodName]
 	);
 
 	return directMethod;

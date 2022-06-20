@@ -1,11 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { D2CMessageSubscription } from './data/D2CMessageSubscription';
 import {
 	D2CMessageCallback,
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
 } from './types';
-import { useUx4iot } from './Ux4iotContext';
+import { useSubscription } from './useSubscription';
+import { RawD2CMessageSubscriptionRequest } from './ux4iot-shared';
 
 type HookOptions<T> = {
 	onData?: (data: T, timestamp: string | undefined) => void;
@@ -17,19 +17,13 @@ export const useD2CMessages = <T>(
 	deviceId: string,
 	options: HookOptions<T> = {}
 ): T | undefined => {
-	const { onData, onGrantError, onSubscriptionError } = options;
-	const ux4iot = useUx4iot();
-	const [subscription, setSubscription] = useState<D2CMessageSubscription>();
-	const [lastMessage, setLastMessage] = useState<T | undefined>();
+	const { onData } = options;
 	const onDataRef = useRef(onData);
-	const onGrantErrorRef = useRef(onGrantError);
-	const onSubscriptionErrorRef = useRef(onSubscriptionError);
+	const [lastMessage, setLastMessage] = useState<T | undefined>();
 
 	useEffect(() => {
 		onDataRef.current = onData;
-		onGrantErrorRef.current = onGrantError;
-		onSubscriptionErrorRef.current = onSubscriptionError;
-	}, [onData, onGrantError, onSubscriptionError]);
+	}, [onData]);
 
 	const onMessage: D2CMessageCallback = useCallback(
 		(deviceId: string, message: unknown, timestamp: string | undefined) => {
@@ -39,21 +33,49 @@ export const useD2CMessages = <T>(
 		[setLastMessage]
 	);
 
-	useEffect(() => {
-		const s = ux4iot.addD2CMessageSubscription({
-			deviceId,
-			onDataCallback: onMessage,
-			onGrantError: onGrantErrorRef.current,
-			onSubscriptionError: onSubscriptionErrorRef.current,
-		});
-		setSubscription(s);
-	}, [ux4iot, deviceId, onMessage]);
+	const subscriptionRequest =
+		useCallback((): RawD2CMessageSubscriptionRequest => {
+			return {
+				deviceId,
+				type: 'd2cMessages',
+			} as RawD2CMessageSubscriptionRequest;
+		}, [deviceId]);
 
-	useEffect(() => {
-		return () => {
-			ux4iot.removeGrantable(subscription);
-		};
-	}, [ux4iot, subscription]);
+	useSubscription(options, onMessage, subscriptionRequest);
+
+	// useEffect(() => {
+	// 	const s = ux4iot.addD2CMessageSubscription({
+	// 		deviceId,
+	// 		onDataCallback: onMessage,
+	// 		onGrantError: onGrantErrorRef.current,
+	// 		onSubscriptionError: onSubscriptionErrorRef.current,
+	// 	});
+	// 	setSubscription(s);
+	// }, [ux4iot, deviceId, onMessage]);
+
+	// useEffect(() => {
+	// 	return () => {
+	// 		ux4iot.removeGrantable(subscription);
+	// 	};
+	// }, [ux4iot, subscription]);
+	// useEffect(() => {
+	// 	ux4iot.subscribe(
+	// 		subscriptionId.current,
+	// 		{ deviceId, type: 'd2cMessages' },
+	// 		onMessage,
+	// 		onSubscriptionErrorRef.current,
+	// 		onGrantErrorRef.current
+	// 	);
+	// 	return () => {
+	// 		const subId = subscriptionId;
+	// 		ux4iot.unsubscribe(
+	// 			subId.current,
+	// 			{ deviceId, type: 'd2cMessages' },
+	// 			onSubscriptionErrorRef.current,
+	// 			onGrantErrorRef.current
+	// 		);
+	// 	};
+	// }, [deviceId, onMessage, ux4iot]);
 
 	return lastMessage;
 };

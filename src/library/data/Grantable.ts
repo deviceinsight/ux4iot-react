@@ -1,6 +1,6 @@
 import { GrantErrorCallback, GRANT_RESPONSES } from '../types';
-import { GrantRequest } from '../ux4iot-shared';
-import { Ux4iotApi } from './Ux4iotApi';
+import { GrantRequest } from '../base/ux4iot-shared';
+import { Ux4iotApi } from '../base/Ux4iotApi';
 
 export type GrantableArgs = {
 	api: Ux4iotApi;

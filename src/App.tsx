@@ -29,7 +29,7 @@ function App(): JSX.Element | null {
 	const [showNestedObject, setShowNestedObject] = useState(false);
 	const [showApp4, setShowApp4] = useState(false);
 	const [kill, setKill] = useState(false);
-	const [renders, setRenders] = useState(20);
+	const [renders, setRenders] = useState(0);
 	const rerender = useRerender(renders);
 	if (!VITE_UX4IOT_CONNECTION_STRING) {
 		console.error('VITE_UX4IOT_CONNECTION_STRING is missing.');

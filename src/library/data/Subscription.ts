@@ -1,5 +1,5 @@
 import { SubscriptionErrorCallback } from '../types';
-import { SubscriptionRequest, Message } from '../ux4iot-shared';
+import { SubscriptionRequest, Message } from '../base/ux4iot-shared';
 import { GrantableArgs, Grantable } from './Grantable';
 
 export type SubscriptionArgs = GrantableArgs & {

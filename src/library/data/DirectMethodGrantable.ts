@@ -1,5 +1,8 @@
 import { DeviceMethodParams } from 'azure-iothub';
-import { DirectMethodGrantRequest, IoTHubResponse } from '../ux4iot-shared';
+import {
+	DirectMethodGrantRequest,
+	IoTHubResponse,
+} from '../base/ux4iot-shared';
 import { Grantable, GrantableArgs } from './Grantable';
 
 export type DirectMethodArgs = GrantableArgs & {

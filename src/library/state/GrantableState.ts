@@ -1,4 +1,4 @@
-import { Ux4iotApi } from '../data/Ux4iotApi';
+import { Ux4iotApi } from '../base/Ux4iotApi';
 import {
 	DeviceTwinArgs,
 	DeviceTwinSubscription,
@@ -103,10 +103,17 @@ export class GrantableState {
 		return g;
 	}
 
-	addTelemetrySubscription(args: Omit<TelemetryArgs, 'api'>) {
+	initTelemetrySubscription(args: Omit<TelemetryArgs, 'api'>) {
 		return this.addAndExecute(
 			new TelemetrySubscription({ ...args, api: this.api })
 		);
+	}
+
+	addTelemetryKeyToSubscription(
+		telemetryKey: string,
+		subscription: TelemetrySubscription
+	) {
+		subscription.addTelemetry(telemetryKey);
 	}
 
 	addConnectionStateSubscription(args: Omit<ConnectionStateArgs, 'api'>) {

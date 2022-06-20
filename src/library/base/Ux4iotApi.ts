@@ -6,7 +6,7 @@ import {
 	InitializationOptions,
 	isDevOptions,
 } from '../types';
-import { printDevModeWarning } from '../utils';
+import { printDevModeWarning } from './utils';
 import {
 	GrantRequest,
 	IoTHubResponse,
@@ -46,16 +46,11 @@ export class Ux4iotApi {
 		this.sessionId = sessionId;
 	}
 
-	public async requestGrant(
-		grantBase:
-			| Omit<GrantRequest, 'sessionId'>
-			| Omit<GrantRequest, 'sessionId'>[]
-	) {
+	public async requestGrant(grantBase: Omit<GrantRequest, 'sessionId'>) {
 		if (!this.sessionId) {
 			return Promise.reject('Ux4iot has no session');
 		}
-		if (Array.isArray(grantBase)) {
-		}
+
 		const grant = { ...grantBase, sessionId: this.sessionId } as GrantRequest;
 		return this.grantRequestFunction(grant);
 	}
@@ -88,43 +83,27 @@ export class Ux4iotApi {
 	}
 
 	public async subscribe(
-		subscriptionRequestBase:
-			| Omit<SubscriptionRequest, 'sessionId'>
-			| Omit<SubscriptionRequest, 'sessionId'>[]
+		subscriptionRequestBase: Omit<SubscriptionRequest, 'sessionId'>
 	) {
 		if (!this.sessionId) {
 			return Promise.reject('Ux4iot has no session');
 		}
-		const subscriptionRequest = Array.isArray(subscriptionRequestBase)
-			? subscriptionRequestBase.map(sr => ({
-					...sr,
-					sessionId: this.sessionId,
-			  }))
-			: {
-					...subscriptionRequestBase,
-					sessionId: this.sessionId,
-			  };
-		await this.axiosInstance.put('/subscribe', subscriptionRequest);
+		await this.axiosInstance.put('/subscribe', {
+			...subscriptionRequestBase,
+			sessionId: this.sessionId,
+		});
 	}
 
 	public async unsubscribe(
-		subscriptionRequestBase:
-			| Omit<SubscriptionRequest, 'sessionId'>
-			| Omit<SubscriptionRequest, 'sessionId'>[]
+		subscriptionRequestBase: Omit<SubscriptionRequest, 'sessionId'>
 	) {
 		if (!this.sessionId) {
 			return Promise.reject('Ux4iot has no session');
 		}
-		const subscriptionRequest = Array.isArray(subscriptionRequestBase)
-			? subscriptionRequestBase.map(sr => ({
-					...sr,
-					sessionId: this.sessionId,
-			  }))
-			: {
-					...subscriptionRequestBase,
-					sessionId: this.sessionId,
-			  };
-		await this.axiosInstance.put('/unsubscribe', subscriptionRequest);
+		await this.axiosInstance.put('/unsubscribe', {
+			...subscriptionRequestBase,
+			sessionId: this.sessionId,
+		});
 	}
 
 	public async invokeDirectMethod(
