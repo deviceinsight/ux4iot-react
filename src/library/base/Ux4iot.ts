@@ -103,12 +103,6 @@ export class Ux4iot {
 		this.log('Successfully reconnected. Resubscribing to old state...');
 		this.api.setSessionId(this.sessionId);
 		this.onSessionId && this.onSessionId(this.sessionId);
-		console.log(
-			'called onSessionId in ux4iot',
-			this.onSessionId,
-			'with',
-			this.sessionId
-		);
 		this.onSocketConnectionUpdate &&
 			this.onSocketConnectionUpdate('socket_connect');
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
@@ -236,7 +230,9 @@ export class Ux4iot {
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				await this.api.subscribe(subscriptionRequest);
+				if (ux4iotState.getNumberOfSubscribers(subReq) === 1) {
+					await this.api.subscribe(subscriptionRequest);
+				}
 			} catch (error) {
 				onSubscriptionError && onSubscriptionError(error);
 				ux4iotState.removeSubscription(subscriberId, subReq);
@@ -265,7 +261,9 @@ export class Ux4iot {
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				await this.api.unsubscribe(subscriptionRequest);
+				if (ux4iotState.getNumberOfSubscribers(subReq) === 0) {
+					await this.api.unsubscribe(subscriptionRequest);
+				}
 			} catch (error) {
 				onSubscriptionError && onSubscriptionError(error);
 				if (subscription) {

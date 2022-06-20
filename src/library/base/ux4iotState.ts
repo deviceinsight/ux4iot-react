@@ -129,28 +129,62 @@ export function hasGrant(grantRequest: GrantRequest) {
 	return false;
 }
 
+export function getNumberOfSubscribers(
+	subscriptionRequest: SubscriptionRequest
+) {
+	let subscriptionCount = 0;
+	for (const subscriptions of Object.values(state.subscriptions)) {
+		for (const s of subscriptions) {
+			const { type, deviceId } = subscriptionRequest;
+			const { type: sType, deviceId: sDeviceId } = s;
+			if (sDeviceId === deviceId && sType === type) {
+				switch (type) {
+					case 'connectionState':
+					case 'd2cMessages':
+					case 'deviceTwin':
+						subscriptionCount++;
+						break;
+					case 'telemetry': {
+						const { telemetryKeys } = s as TelemetrySubscription;
+						if (telemetryKeys.includes(subscriptionRequest.telemetryKey)) {
+							subscriptionCount++;
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	return subscriptionCount;
+}
+
 export function hasGrantForSubscription(
 	subscriptionRequest: SubscriptionRequest
 ) {
+	const { deviceId, type, sessionId } = subscriptionRequest;
 	for (const grants of Object.values(state.grants)) {
 		for (const g of grants) {
-			const { deviceId, type, sessionId } = subscriptionRequest;
 			if (g.deviceId !== deviceId || g.sessionId !== sessionId) {
 				continue;
 			}
 			switch (type) {
 				case 'connectionState':
-					return g.grantType === 'subscribeToConnectionState';
+					if (g.grantType === 'subscribeToConnectionState') return true;
+					break;
 				case 'deviceTwin':
-					return g.grantType === 'subscribeToDeviceTwin';
+					if (g.grantType === 'subscribeToDeviceTwin') return true;
+					break;
 				case 'd2cMessages':
-					return g.grantType === 'subscribeToD2CMessages';
+					if (g.grantType === 'subscribeToD2CMessages') return true;
+					break;
 				case 'telemetry': {
 					const { telemetryKey } = subscriptionRequest;
-					return (
+					if (
 						g.grantType === 'subscribeToTelemetry' &&
 						g.telemetryKey === telemetryKey
-					);
+					)
+						return true;
+					break;
 				}
 			}
 		}
@@ -207,6 +241,7 @@ export function addSubscription(
 			break;
 	}
 }
+
 export function removeSubscription(
 	subscriberId: string,
 	subscriptionRequest: SubscriptionRequest
@@ -259,6 +294,7 @@ export function removeSubscription(
 			break;
 	}
 }
+
 export function addGrant(grantRequest: GrantRequest) {
 	const { grants } = state;
 	const { grantType } = grantRequest;

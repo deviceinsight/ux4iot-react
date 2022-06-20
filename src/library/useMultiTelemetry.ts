@@ -41,6 +41,14 @@ type HookOptions = {
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
+function getSubscriptionRequest(deviceId: string, telemetryKey: string) {
+	return {
+		deviceId,
+		telemetryKey,
+		type: 'telemetry',
+	} as TelemetrySubscriptionRequest;
+}
+
 export const useMultiTelemetry = (
 	options: HookOptions
 ): UseMultiTelemetryOutput => {
@@ -70,14 +78,6 @@ export const useMultiTelemetry = (
 		},
 		[setTelemetry]
 	);
-
-	function getSubscriptionRequest(deviceId: string, telemetryKey: string) {
-		return {
-			deviceId,
-			telemetryKey,
-			type: 'telemetry',
-		} as TelemetrySubscriptionRequest;
-	}
 
 	const addTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {

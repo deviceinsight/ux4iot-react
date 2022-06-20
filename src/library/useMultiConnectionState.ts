@@ -24,6 +24,15 @@ type HookOptions = {
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
+function getSubscriptionRequest(
+	deviceId: string
+): ConnectionStateSubscriptionRequest {
+	return {
+		deviceId,
+		type: 'connectionState',
+	} as ConnectionStateSubscriptionRequest;
+}
+
 export const useMultiConnectionState = (
 	options: HookOptions
 ): UseMultiConnectionStateOutput => {
@@ -55,15 +64,6 @@ export const useMultiConnectionState = (
 		},
 		[]
 	);
-
-	function getSubscriptionRequest(
-		deviceId: string
-	): ConnectionStateSubscriptionRequest {
-		return {
-			deviceId,
-			type: 'connectionState',
-		} as ConnectionStateSubscriptionRequest;
-	}
 
 	const addConnectionState = useCallback(
 		async (deviceId: string) => {

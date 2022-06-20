@@ -40,12 +40,12 @@ export const useTelemetry = <T = any>(
 		[telemetryKey]
 	);
 
-	const subscriptionRequest = (): Omit<
+	const subscriptionRequest = useCallback((): Omit<
 		TelemetrySubscriptionRequest,
 		'sessionId'
 	> => {
 		return { deviceId, telemetryKey, type: 'telemetry' };
-	};
+	}, [deviceId, telemetryKey]);
 
 	useSubscription(options, onTelemetry, subscriptionRequest);
 
