@@ -83,7 +83,7 @@ export const useMultiTelemetry = (
 	const addTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {
 			for (const key of telemetryKeys) {
-				await ux4iot.subscribe(
+				ux4iot.subscribe(
 					subscriptionId.current,
 					getSubscriptionRequest(deviceId, key),
 					onTelemetry,
@@ -101,7 +101,7 @@ export const useMultiTelemetry = (
 	const removeTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {
 			for (const key of telemetryKeys) {
-				await ux4iot.unsubscribe(
+				ux4iot.unsubscribe(
 					subscriptionId.current,
 					getSubscriptionRequest(deviceId, key),
 					onSubscriptionErrorRef.current,
@@ -121,8 +121,8 @@ export const useMultiTelemetry = (
 				subscriptionId.current,
 				getSubscriptionRequest(deviceId, telemetryKey)
 			)
-				? await removeTelemetry(deviceId, [telemetryKey])
-				: await addTelemetry(deviceId, [telemetryKey]);
+				? removeTelemetry(deviceId, [telemetryKey])
+				: addTelemetry(deviceId, [telemetryKey]);
 		},
 		[ux4iot, addTelemetry, removeTelemetry]
 	);
