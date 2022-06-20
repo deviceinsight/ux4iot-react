@@ -27,8 +27,6 @@ export type ADD_DATA_ACTION = {
 	type: 'ADD_DATA';
 	deviceId: string;
 	message: Record<string, any>;
-	// telemetryKey: string;
-	// telemetryValue: unknown;
 	timestamp?: string;
 };
 

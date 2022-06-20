@@ -1,12 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useUx4iot } from './Ux4iotContext';
 import { GrantErrorCallback } from './types';
-import {
-	DesiredPropertyGrantRequest,
-	DirectMethodGrantRequest,
-	IoTHubResponse,
-} from './ux4iot-shared';
-import { PatchDesiredPropertiesGrantable } from './data/PatchDesiredPropertiesGrantable';
+import { DirectMethodGrantRequest, IoTHubResponse } from './ux4iot-shared';
 
 type UseDirectMethodOutput = (
 	payload: Record<string, unknown>,

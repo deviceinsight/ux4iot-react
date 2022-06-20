@@ -33,49 +33,14 @@ export const useD2CMessages = <T>(
 		[setLastMessage]
 	);
 
-	const subscriptionRequest =
-		useCallback((): RawD2CMessageSubscriptionRequest => {
-			return {
-				deviceId,
-				type: 'd2cMessages',
-			} as RawD2CMessageSubscriptionRequest;
-		}, [deviceId]);
+	const subscriptionRequest = useCallback((): Omit<
+		RawD2CMessageSubscriptionRequest,
+		'sessionId'
+	> => {
+		return { deviceId, type: 'd2cMessages' };
+	}, [deviceId]);
 
 	useSubscription(options, onMessage, subscriptionRequest);
-
-	// useEffect(() => {
-	// 	const s = ux4iot.addD2CMessageSubscription({
-	// 		deviceId,
-	// 		onDataCallback: onMessage,
-	// 		onGrantError: onGrantErrorRef.current,
-	// 		onSubscriptionError: onSubscriptionErrorRef.current,
-	// 	});
-	// 	setSubscription(s);
-	// }, [ux4iot, deviceId, onMessage]);
-
-	// useEffect(() => {
-	// 	return () => {
-	// 		ux4iot.removeGrantable(subscription);
-	// 	};
-	// }, [ux4iot, subscription]);
-	// useEffect(() => {
-	// 	ux4iot.subscribe(
-	// 		subscriptionId.current,
-	// 		{ deviceId, type: 'd2cMessages' },
-	// 		onMessage,
-	// 		onSubscriptionErrorRef.current,
-	// 		onGrantErrorRef.current
-	// 	);
-	// 	return () => {
-	// 		const subId = subscriptionId;
-	// 		ux4iot.unsubscribe(
-	// 			subId.current,
-	// 			{ deviceId, type: 'd2cMessages' },
-	// 			onSubscriptionErrorRef.current,
-	// 			onGrantErrorRef.current
-	// 		);
-	// 	};
-	// }, [deviceId, onMessage, ux4iot]);
 
 	return lastMessage;
 };

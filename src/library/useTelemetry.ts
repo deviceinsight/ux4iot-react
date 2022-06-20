@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useEffectDebugger } from '../useEffectDebugger';
 import {
 	TelemetryCallback,
 	GrantErrorCallback,
@@ -41,61 +40,14 @@ export const useTelemetry = <T = any>(
 		[telemetryKey]
 	);
 
-	const subscriptionRequest = useCallback((): TelemetrySubscriptionRequest => {
-		return {
-			deviceId,
-			telemetryKey,
-			type: 'telemetry',
-		} as TelemetrySubscriptionRequest;
-	}, [deviceId, telemetryKey]);
+	const subscriptionRequest = (): Omit<
+		TelemetrySubscriptionRequest,
+		'sessionId'
+	> => {
+		return { deviceId, telemetryKey, type: 'telemetry' };
+	};
 
 	useSubscription(options, onTelemetry, subscriptionRequest);
-
-	// useEffect(() => {
-	// 	onDataRef.current = onData;
-	// 	onGrantErrorRef.current = onGrantError;
-	// 	onSubscriptionErrorRef.current = onSubscriptionError;
-	// }, [onData, onGrantError, onSubscriptionError]);
-
-	// useEffect(() => {
-	// 	const subReq = {
-	// 		deviceId,
-	// 		telemetryKey,
-	// 		sessionId,
-	// 		type: 'telemetry',
-	// 	} as SubscriptionRequest;
-	// 	async function sub() {
-	// 		await ux4iot.subscribe(
-	// 			subscriptionId.current,
-	// 			subReq,
-	// 			onTelemetry,
-	// 			onSubscriptionErrorRef.current,
-	// 			onGrantErrorRef.current
-	// 		);
-	// 	}
-	// 	sub();
-	// 	const subId = subscriptionId.current;
-	// 	console.log('useTelemetry subscribe', ux4iot.sessionId);
-	// 	return () => {
-	// 		console.log('useTelemetry  unsubscribe', ux4iot.sessionId);
-	// 		async function unsub() {
-	// 			await ux4iot.unsubscribe(
-	// 				subId,
-	// 				subReq,
-	// 				onSubscriptionErrorRef.current,
-	// 				onGrantErrorRef.current
-	// 			);
-	// 		}
-	// 		unsub();
-	// 	};
-	// }, [ux4iot, sessionId, deviceId, telemetryKey, onTelemetry]);
-
-	// useEffect(() => {
-	// 	// subscriberId: string,
-	// 	// subscriptionRequest: SubscriptionRequest,
-	// 	// onSubscriptionError: SubscriptionErrorCallback,
-	// 	// onGrantError: GrantErrorCallback
-	// }, [sessionId]);
 
 	return value;
 };

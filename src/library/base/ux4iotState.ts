@@ -1,36 +1,3 @@
-// Ux4iot:
-//   - patchDesiredProperties( deviceId, patch)
-//     - catch notReady: Error
-//     - catch notGranted: Youre not authorized
-//   - invokeDirectMethod(deviceId, directMethod)
-//     - catch notReady: Error
-//     - catch notGranted: Youre not authorized
-//   - state: Ux4iotState
-//     - methods:
-//       - private hasGrantFor(deviceId, telemetryKey): checks if theres a need to ask for grant
-//       - private hasSubscriptionFor(deviceId, telemetryKey): checks if theres a need to subscribe
-//       - onStateChange
-//   // - ungrant(grant)
-//   - grant(grant)
-//     if ux4iot.ready === false:
-//       - enqueue grantrequest
-//     else
-//       - requests grant if grant isnt already in state
-//         - success: add grant to ux4iotState
-//         - failure: onGrantError
-//   - subscribe(subscriberId, subReq)
-//     - subscribes data if data isnt already subscribed to
-//       - success: add subscription to ux4iotState
-//       - failure: onSubscriptionError
-//   - unsubscribe(subscriberId, subReq)
-//     - unsubscribes data if data isnt still subscribed by anyone else
-//       - success: remove subscription to ux4iotState
-//       - failure: onSubscriptionError
-//   - onData:
-//     for each subscriptionId.onDataCallback in ux4iotState.subscriptions
-//       - match deviceId, match type, aggregate telemetry
-//         - onDataCallback(deviceId, data)
-
 import {
 	ConnectionStateCallback,
 	D2CMessageCallback,
@@ -60,40 +27,6 @@ import {
 	isDeviceTwinMessage,
 	grantRequestsEqual,
 } from './utils';
-
-// useTelemetry:
-
-// state:
-//   - telemetryValue
-//   - ux4iot context
-
-// effects
-//   ux4iot.onIsReadyChange
-//     - is ready?
-//       yes:
-//       - ux4iot.askGrant
-//         - true: granted
-//         - false: onGrantError
-//       - ux4iot.askSubscription:
-//         - true: subscribed
-//         - false: onSubscriptionError
-//       no:
-//       - idle
-
-// useMultiTelemetry
-//   for each deviceId:
-//     for each telemetryKey of deviceId:
-//       addTelemetry();
-
-//   addTelemetry:
-//     - ux4iot.subscribe(subscriberId, subReq) -> replace subrequest!!!
-
-// type Subscription<T> = {
-// 	type: SubscriptionRequest['type'];
-// 	deviceId: string;
-// 	onData: MessageCallback;
-// 	telemetryKeys: string[];
-// };
 
 type Subscription =
 	| TelemetrySubscription
@@ -165,7 +98,6 @@ export function resetState() {
 	state.subscriptions = {};
 }
 
-//@ts-ignore
 window.ux4iotState = state;
 
 export function hasSubscription(
@@ -319,6 +251,9 @@ export function removeSubscription(
 						foundSubscription.telemetryKeys = nextTelemetryKeys;
 					}
 				}
+				if (state.subscriptions[subscriberId].length === 0) {
+					delete state.subscriptions[subscriberId];
+				}
 				return foundSubscription;
 			}
 			break;
@@ -388,24 +323,32 @@ export function removeGrant(grantRequest: GrantRequest) {
 
 export function sendMessage(message: Message) {
 	for (const subscriptions of Object.values(state.subscriptions)) {
-		for (const { type, deviceId, onData } of subscriptions) {
+		for (const s of subscriptions) {
+			const { type, deviceId } = s;
 			if (deviceId === message.deviceId) {
 				switch (type) {
-					case 'telemetry':
-						isTelemetryMessage(message) &&
-							onData(message.deviceId, message.telemetry, message.timestamp);
+					case 'telemetry': {
+						if (isTelemetryMessage(message)) {
+							const filteredTelemetry: Record<string, unknown> = {};
+							for (const telemetryKey of s.telemetryKeys) {
+								filteredTelemetry[telemetryKey] =
+									message.telemetry[telemetryKey];
+							}
+							s.onData(message.deviceId, filteredTelemetry, message.timestamp);
+						}
 						break;
+					}
 					case 'connectionState':
 						isConnectionStateMessage(message) &&
-							onData(message.deviceId, message.connectionState.connected);
+							s.onData(message.deviceId, message.connectionState.connected);
 						break;
 					case 'd2cMessages':
 						isD2CMessage(message) &&
-							onData(message.deviceId, message.message, message.timestamp);
+							s.onData(message.deviceId, message.message, message.timestamp);
 						break;
 					case 'deviceTwin':
 						isDeviceTwinMessage(message) &&
-							onData(message.deviceId, message.deviceTwin);
+							s.onData(message.deviceId, message.deviceTwin);
 						break;
 				}
 			}

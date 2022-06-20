@@ -299,6 +299,8 @@ export class Ux4iot {
 		for (const s of registered) {
 			if (s.type === 'telemetry') {
 				subscriptions[s.deviceId] = s.telemetryKeys;
+			} else {
+				subscriptions[s.deviceId] = [];
 			}
 		}
 		return subscriptions;
@@ -310,7 +312,14 @@ export class Ux4iot {
 		if (subscriptions) {
 			for (const s of subscriptions) {
 				try {
-					await this.unsubscribe(subscriberId, s);
+					if (s.type === 'telemetry') {
+						for (const telemetryKey of s.telemetryKeys) {
+							const sr = { type: s.type, deviceId: s.deviceId, telemetryKey };
+							await this.unsubscribe(subscriberId, sr);
+						}
+					} else {
+						await this.unsubscribe(subscriberId, s);
+					}
 				} catch (error) {
 					console.log('couldnt unsubscribe subscriberId', subscriberId, error);
 				}
