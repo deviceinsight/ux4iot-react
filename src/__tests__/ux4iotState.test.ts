@@ -5,14 +5,14 @@ import {
 	mockedDesiredPropertiesGrant,
 	mockedDeviceTwinGrant,
 	mockedDirectMethodGrant,
-	mockedRawD2CMessagesGrant,
+	mockedD2CMessagesGrant,
 	mockedTelemetryGrant,
 	mockedTelemetryGrant2,
 } from '../__fixtures__/grantFixtures';
 import {
 	mockedConnectionStateSubscription,
 	mockedDeviceTwinSubscription,
-	mockedRawD2CMessagesSubscription,
+	mockedD2CMessagesSubscription,
 	mockedTelemetrySubscription,
 	mockedTelemetrySubscription2,
 	mockedTelemetrySubscription3,
@@ -41,7 +41,7 @@ describe('ux4iotState', () => {
 		ux4iotState.addGrant(mockedTelemetryGrant2(sessionId));
 		ux4iotState.addGrant(mockedConnectionStateGrant(sessionId));
 		ux4iotState.addGrant(mockedDeviceTwinGrant(sessionId));
-		ux4iotState.addGrant(mockedRawD2CMessagesGrant(sessionId));
+		ux4iotState.addGrant(mockedD2CMessagesGrant(sessionId));
 		ux4iotState.addGrant(mockedDesiredPropertiesGrant(sessionId));
 		ux4iotState.addGrant(mockedDirectMethodGrant(sessionId));
 
@@ -104,7 +104,7 @@ describe('ux4iotState', () => {
 		const telemetrySub2 = mockedTelemetrySubscription2(sessionId);
 		const telemetrySub3 = mockedTelemetrySubscription3(sessionId);
 		const deviceTwinSub = mockedDeviceTwinSubscription(sessionId);
-		const d2cMessageSub = mockedRawD2CMessagesSubscription(sessionId);
+		const d2cMessageSub = mockedD2CMessagesSubscription(sessionId);
 		const connectionStateSub = mockedConnectionStateSubscription(sessionId);
 
 		expect(ux4iotState.hasGrantForSubscription(telemetrySub)).toBe(true);
@@ -118,7 +118,7 @@ describe('ux4iotState', () => {
 		ux4iotState.removeGrant(mockedTelemetryGrant2(sessionId));
 		ux4iotState.removeGrant(mockedConnectionStateGrant(sessionId));
 		ux4iotState.removeGrant(mockedDeviceTwinGrant(sessionId));
-		ux4iotState.removeGrant(mockedRawD2CMessagesGrant(sessionId));
+		ux4iotState.removeGrant(mockedD2CMessagesGrant(sessionId));
 		ux4iotState.removeGrant(mockedDesiredPropertiesGrant(sessionId));
 		ux4iotState.removeGrant(mockedDirectMethodGrant(sessionId));
 
@@ -143,7 +143,7 @@ describe('ux4iotState', () => {
 		const m = jest.fn();
 		const telemetrySub = mockedTelemetrySubscription(sessionId);
 		const deviceTwinSub = mockedDeviceTwinSubscription(sessionId);
-		const d2cMessageSub = mockedRawD2CMessagesSubscription(sessionId);
+		const d2cMessageSub = mockedD2CMessagesSubscription(sessionId);
 		const connectionStateSub = mockedConnectionStateSubscription(sessionId);
 
 		ux4iotState.addSubscription('sub1', telemetrySub, m);
@@ -214,7 +214,7 @@ describe('ux4iotState', () => {
 		const telemetrySub2 = mockedTelemetrySubscription2(sessionId);
 		const telemetrySub3 = mockedTelemetrySubscription3(sessionId);
 		const deviceTwinSub = mockedDeviceTwinSubscription(sessionId);
-		const d2cMessageSub = mockedRawD2CMessagesSubscription(sessionId);
+		const d2cMessageSub = mockedD2CMessagesSubscription(sessionId);
 		const connectionStateSub = mockedConnectionStateSubscription(sessionId);
 		const unknownSub: TelemetrySubscriptionRequest = {
 			type: 'telemetry',
@@ -237,7 +237,7 @@ describe('ux4iotState', () => {
 	it('removes telemetry subscriptions', () => {
 		const telemetrySub = mockedTelemetrySubscription(sessionId);
 		const deviceTwinSub = mockedDeviceTwinSubscription(sessionId);
-		const d2cMessageSub = mockedRawD2CMessagesSubscription(sessionId);
+		const d2cMessageSub = mockedD2CMessagesSubscription(sessionId);
 		const connectionStateSub = mockedConnectionStateSubscription(sessionId);
 
 		ux4iotState.removeSubscription('sub1', telemetrySub);

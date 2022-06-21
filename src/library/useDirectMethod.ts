@@ -38,9 +38,9 @@ export const useDirectMethod = (
 				// onGrantError: GrantErrorCallback,
 				// options: DeviceMethodParams
 				const req: Omit<DirectMethodGrantRequest, 'sessionId'> = {
+					type: 'directMethod',
 					deviceId,
 					directMethodName,
-					grantType: 'invokeDirectMethod',
 				};
 				return await ux4iot.invokeDirectMethod(
 					req,

@@ -5,7 +5,7 @@ import {
 	SubscriptionErrorCallback,
 } from './types';
 import { useSubscription } from './useSubscription';
-import { RawD2CMessageSubscriptionRequest } from './ux4iot-shared';
+import { D2CMessageSubscriptionRequest } from './ux4iot-shared';
 
 type HookOptions<T> = {
 	onData?: (data: T, timestamp: string | undefined) => void;
@@ -34,7 +34,7 @@ export const useD2CMessages = <T>(
 	);
 
 	const subscriptionRequest = useCallback((): Omit<
-		RawD2CMessageSubscriptionRequest,
+		D2CMessageSubscriptionRequest,
 		'sessionId'
 	> => {
 		return { deviceId, type: 'd2cMessages' };

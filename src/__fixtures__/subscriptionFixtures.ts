@@ -2,7 +2,7 @@ import {
 	TelemetrySubscriptionRequest,
 	DeviceTwinSubscriptionRequest,
 	ConnectionStateSubscriptionRequest,
-	RawD2CMessageSubscriptionRequest,
+	D2CMessageSubscriptionRequest,
 } from '../library';
 
 export const mockedTelemetrySubscription = (
@@ -43,9 +43,9 @@ export const mockedConnectionStateSubscription = (
 	deviceId: 'mockedDeviceId',
 	sessionId,
 });
-export const mockedRawD2CMessagesSubscription = (
+export const mockedD2CMessagesSubscription = (
 	sessionId: string
-): RawD2CMessageSubscriptionRequest => ({
+): D2CMessageSubscriptionRequest => ({
 	type: 'd2cMessages',
 	deviceId: 'mockedDeviceId',
 	sessionId,

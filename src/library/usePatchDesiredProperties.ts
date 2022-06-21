@@ -27,12 +27,9 @@ export const usePatchDesiredProperties = (
 		async (
 			desiredProperties: Record<string, unknown>
 		): Promise<IoTHubResponse | void> => {
-			// grantRequest: DesiredPropertyGrantRequest,
-			// onGrantError: GrantErrorCallback,
-			// desiredPropertyPatch: Record<string, unknown>
 			const req: Omit<DesiredPropertyGrantRequest, 'sessionId'> = {
+				type: 'desiredProperties',
 				deviceId,
-				grantType: 'modifyDesiredProperties',
 			};
 			return ux4iot.patchDesiredProperties(
 				req,

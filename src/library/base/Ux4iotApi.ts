@@ -106,6 +106,51 @@ export class Ux4iotApi {
 		});
 	}
 
+	public async getLastTelemetryValues(deviceId: string, telemetryKey: string) {
+		if (!this.sessionId) {
+			return Promise.reject('Ux4iot has no session');
+		}
+		const response = await this.axiosInstance.get(
+			`/lastValue/${deviceId}/${telemetryKey}`,
+			{
+				headers: {
+					sessionId: this.sessionId,
+				},
+			}
+		);
+
+		return response.data;
+	}
+
+	public async getLastDeviceTwin(deviceId: string) {
+		if (!this.sessionId) {
+			return Promise.reject('Ux4iot has no session');
+		}
+		const response = await this.axiosInstance.get(`/lastTwin/${deviceId}`, {
+			headers: {
+				sessionId: this.sessionId,
+			},
+		});
+
+		return response.data;
+	}
+
+	public async getLastConnectionState(deviceId: string) {
+		if (!this.sessionId) {
+			return Promise.reject('Ux4iot has no session');
+		}
+		const response = await this.axiosInstance.get(
+			`/lastConnectionState/${deviceId}`,
+			{
+				headers: {
+					sessionId: this.sessionId,
+				},
+			}
+		);
+
+		return response.data;
+	}
+
 	public async invokeDirectMethod(
 		deviceId: string,
 		options: DeviceMethodParams

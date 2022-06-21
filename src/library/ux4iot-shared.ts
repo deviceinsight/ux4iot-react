@@ -13,24 +13,24 @@ type GrantRequestBase<T> = {
 	sessionId: string;
 } & T;
 export type TelemetryGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToTelemetry';
+	type: 'telemetry';
 	telemetryKey?: string | null; // null means: Access to all telemetry keys
 }>;
 export type DeviceTwinGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToDeviceTwin';
+	type: 'deviceTwin';
 }>;
 export type ConnectionStateGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToConnectionState';
+	type: 'connectionState';
 }>;
 export type DesiredPropertyGrantRequest = GrantRequestBase<{
-	grantType: 'modifyDesiredProperties';
+	type: 'desiredProperties';
 }>;
 export type DirectMethodGrantRequest = GrantRequestBase<{
-	grantType: 'invokeDirectMethod';
+	type: 'directMethod';
 	directMethodName: string | null; // null means: Access to all direct methods
 }>;
-export type RawD2CMessageGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToD2CMessages';
+export type D2CMessageGrantRequest = GrantRequestBase<{
+	type: 'd2cMessages';
 }>;
 
 export type GrantRequest =
@@ -39,7 +39,7 @@ export type GrantRequest =
 	| ConnectionStateGrantRequest
 	| DesiredPropertyGrantRequest
 	| DirectMethodGrantRequest
-	| RawD2CMessageGrantRequest;
+	| D2CMessageGrantRequest;
 
 type SubscriptionRequestBase<T> = {
 	deviceId: string;
@@ -55,7 +55,7 @@ export type DeviceTwinSubscriptionRequest = SubscriptionRequestBase<{
 export type ConnectionStateSubscriptionRequest = SubscriptionRequestBase<{
 	type: 'connectionState';
 }>;
-export type RawD2CMessageSubscriptionRequest = SubscriptionRequestBase<{
+export type D2CMessageSubscriptionRequest = SubscriptionRequestBase<{
 	type: 'd2cMessages';
 }>;
 
@@ -63,7 +63,7 @@ export type SubscriptionRequest =
 	| TelemetrySubscriptionRequest // null means: Access to all telemetry keysS
 	| DeviceTwinSubscriptionRequest
 	| ConnectionStateSubscriptionRequest
-	| RawD2CMessageSubscriptionRequest;
+	| D2CMessageSubscriptionRequest;
 
 export type ConnectionState = {
 	connected: boolean;
@@ -86,7 +86,7 @@ export type DeviceTwinMessage = MessageBase<{
 	deviceTwin: TwinUpdate;
 }>;
 
-export type RawD2CMessage = MessageBase<{
+export type D2CMessage = MessageBase<{
 	message: Record<string, unknown>;
 }>;
 
@@ -94,7 +94,7 @@ export type Message =
 	| TelemetryMessage
 	| ConnectionStateMessage
 	| DeviceTwinMessage
-	| RawD2CMessage;
+	| D2CMessage;
 
 export type IoTHubResponse = {
 	status: number;

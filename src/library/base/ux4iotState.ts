@@ -8,14 +8,14 @@ import {
 import {
 	ConnectionStateGrantRequest,
 	ConnectionStateSubscriptionRequest,
+	D2CMessageGrantRequest,
+	D2CMessageSubscriptionRequest,
 	DesiredPropertyGrantRequest,
 	DeviceTwinGrantRequest,
 	DeviceTwinSubscriptionRequest,
 	DirectMethodGrantRequest,
 	GrantRequest,
 	Message,
-	RawD2CMessageGrantRequest,
-	RawD2CMessageSubscriptionRequest,
 	SubscriptionRequest,
 	TelemetryGrantRequest,
 	TelemetrySubscriptionRequest,
@@ -47,7 +47,7 @@ type DeviceTwinSubscription = Omit<
 	onData: DeviceTwinCallback;
 };
 type D2CMessageSubscription = Omit<
-	RawD2CMessageSubscriptionRequest,
+	D2CMessageSubscriptionRequest,
 	'sessionId'
 > & {
 	onData: D2CMessageCallback;
@@ -67,7 +67,7 @@ type Ux4iotState = {
 type Ux4iotGrants = {
 	deviceTwin: DeviceTwinGrantRequest[];
 	connectionState: ConnectionStateGrantRequest[];
-	d2cMessage: RawD2CMessageGrantRequest[];
+	d2cMessage: D2CMessageGrantRequest[];
 	telemetry: TelemetryGrantRequest[];
 	desiredProperties: DesiredPropertyGrantRequest[];
 	directMethod: DirectMethodGrantRequest[];
@@ -163,26 +163,19 @@ export function hasGrantForSubscription(
 ) {
 	const { deviceId, type, sessionId } = subscriptionRequest;
 	for (const grants of Object.values(state.grants)) {
-		for (const g of grants) {
-			if (g.deviceId !== deviceId || g.sessionId !== sessionId) {
+		for (const grant of grants) {
+			if (grant.deviceId !== deviceId || grant.sessionId !== sessionId) {
 				continue;
 			}
 			switch (type) {
 				case 'connectionState':
-					if (g.grantType === 'subscribeToConnectionState') return true;
-					break;
 				case 'deviceTwin':
-					if (g.grantType === 'subscribeToDeviceTwin') return true;
-					break;
 				case 'd2cMessages':
-					if (g.grantType === 'subscribeToD2CMessages') return true;
+					if (grant.type === type) return true;
 					break;
 				case 'telemetry': {
 					const { telemetryKey } = subscriptionRequest;
-					if (
-						g.grantType === 'subscribeToTelemetry' &&
-						g.telemetryKey === telemetryKey
-					)
+					if (grant.type === type && grant.telemetryKey === telemetryKey)
 						return true;
 					break;
 				}
@@ -297,19 +290,19 @@ export function removeSubscription(
 
 export function addGrant(grantRequest: GrantRequest) {
 	const { grants } = state;
-	const { grantType } = grantRequest;
-	switch (grantType) {
-		case 'invokeDirectMethod':
+	const { type } = grantRequest;
+	switch (type) {
+		case 'directMethod':
 			return grants.directMethod.push(grantRequest);
-		case 'modifyDesiredProperties':
+		case 'desiredProperties':
 			return grants.desiredProperties.push(grantRequest);
-		case 'subscribeToConnectionState':
+		case 'connectionState':
 			return grants.connectionState.push(grantRequest);
-		case 'subscribeToD2CMessages':
+		case 'd2cMessages':
 			return grants.d2cMessage.push(grantRequest);
-		case 'subscribeToDeviceTwin':
+		case 'deviceTwin':
 			return grants.deviceTwin.push(grantRequest);
-		case 'subscribeToTelemetry':
+		case 'telemetry':
 			return grants.telemetry.push(grantRequest);
 		default:
 			break;
@@ -318,34 +311,34 @@ export function addGrant(grantRequest: GrantRequest) {
 
 export function removeGrant(grantRequest: GrantRequest) {
 	const { grants } = state;
-	const { grantType } = grantRequest;
-	switch (grantType) {
-		case 'invokeDirectMethod':
+	const { type } = grantRequest;
+	switch (type) {
+		case 'directMethod':
 			grants.directMethod = grants.directMethod.filter(
 				g => !grantRequestsEqual(g, grantRequest)
 			);
 			break;
-		case 'modifyDesiredProperties':
+		case 'desiredProperties':
 			grants.desiredProperties = grants.desiredProperties.filter(
 				g => !grantRequestsEqual(g, grantRequest)
 			);
 			break;
-		case 'subscribeToConnectionState':
+		case 'connectionState':
 			grants.connectionState = grants.connectionState.filter(
 				g => !grantRequestsEqual(g, grantRequest)
 			);
 			break;
-		case 'subscribeToD2CMessages':
+		case 'd2cMessages':
 			grants.d2cMessage = grants.d2cMessage.filter(
 				g => !grantRequestsEqual(g, grantRequest)
 			);
 			break;
-		case 'subscribeToDeviceTwin':
+		case 'deviceTwin':
 			grants.deviceTwin = grants.deviceTwin.filter(
 				g => !grantRequestsEqual(g, grantRequest)
 			);
 			break;
-		case 'subscribeToTelemetry':
+		case 'telemetry':
 			grants.telemetry = grants.telemetry.filter(
 				g => !grantRequestsEqual(g, grantRequest)
 			);

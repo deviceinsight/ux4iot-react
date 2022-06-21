@@ -16,6 +16,7 @@ import {
 	IoTHubResponse,
 	Message,
 	SubscriptionRequest,
+	TwinUpdate,
 } from '../ux4iot-shared';
 
 import { Ux4iotApi } from './Ux4iotApi';
@@ -324,5 +325,33 @@ export class Ux4iot {
 			}
 		}
 		ux4iotState.cleanSubId(subscriberId);
+	}
+
+	async getLastValueForSubscriptionRequest(
+		subscriptionRequest: SubscriptionRequest,
+		onGrantError?: GrantErrorCallback,
+		onSubscriptionError?: SubscriptionErrorCallback
+	) {
+		const { type, deviceId } = subscriptionRequest;
+		const grantRequest = getGrantFromSubscriptionRequest(subscriptionRequest);
+		await this.grant(grantRequest, onGrantError);
+		try {
+			switch (type) {
+				case 'connectionState':
+					return await this.api.getLastConnectionState(deviceId);
+				case 'deviceTwin':
+					return await this.api.getLastDeviceTwin(deviceId);
+				case 'telemetry': {
+					const { telemetryKey } = subscriptionRequest;
+					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
+				}
+				case 'd2cMessages':
+					return Promise.resolve();
+				default:
+					return Promise.resolve();
+			}
+		} catch (error) {
+			onSubscriptionError && onSubscriptionError(error);
+		}
 	}
 }

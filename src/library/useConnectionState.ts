@@ -26,6 +26,7 @@ export const useConnectionState = (
 	}, [onData]);
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
+		// TODO: align all data callbacks to be the same
 		(deviceId, state) => {
 			setConnectionState(state);
 			onDataRef.current && onDataRef.current(state);

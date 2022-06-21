@@ -1,10 +1,11 @@
 import {
 	ConnectionStateMessage,
-	RawD2CMessage,
 	DeviceTwinMessage,
 	TelemetryMessage,
+	D2CMessage,
 	GrantRequest,
 	SubscriptionRequest,
+	TelemetryGrantRequest,
 } from '../ux4iot-shared';
 
 const DELIMITER = '___';
@@ -86,7 +87,7 @@ export function isConnectionStateMessage(
 
 export function isD2CMessage(
 	message: Record<string, unknown>
-): message is RawD2CMessage {
+): message is D2CMessage {
 	return !!message.message;
 }
 
@@ -103,19 +104,19 @@ export function isTelemetryMessage(
 }
 
 export function grantRequestsEqual(g1: GrantRequest, g2: GrantRequest) {
-	if (g1.grantType === g2.grantType && g1.sessionId === g2.sessionId) {
-		switch (g1.grantType) {
-			case 'modifyDesiredProperties':
-			case 'subscribeToDeviceTwin':
-			case 'subscribeToConnectionState':
-			case 'subscribeToD2CMessages':
+	if (g1.type === g2.type && g1.sessionId === g2.sessionId) {
+		switch (g1.type) {
+			case 'desiredProperties':
+			case 'deviceTwin':
+			case 'connectionState':
+			case 'd2cMessages':
 				return g1.deviceId === g2.deviceId;
-			case 'invokeDirectMethod':
+			case 'directMethod':
 				return (
 					g1.deviceId === g2.deviceId &&
 					g1.directMethodName === (g2 as typeof g1).directMethodName
 				);
-			case 'subscribeToTelemetry':
+			case 'telemetry':
 				return (
 					g1.deviceId === g2.deviceId &&
 					g1.telemetryKey === (g2 as typeof g1).telemetryKey
@@ -131,21 +132,15 @@ export function getGrantFromSubscriptionRequest(
 	request: SubscriptionRequest
 ): GrantRequest {
 	const { type, sessionId, deviceId } = request;
-	const grantRequest = { sessionId, deviceId };
+	const grantRequest: GrantRequest = { sessionId, deviceId, type };
 	switch (type) {
 		case 'connectionState':
-			return { ...grantRequest, grantType: 'subscribeToConnectionState' };
 		case 'deviceTwin':
-			return { ...grantRequest, grantType: 'subscribeToDeviceTwin' };
 		case 'd2cMessages':
-			return { ...grantRequest, grantType: 'subscribeToD2CMessages' };
+			return grantRequest;
 		case 'telemetry': {
 			const { telemetryKey } = request;
-			return {
-				...grantRequest,
-				grantType: 'subscribeToTelemetry',
-				telemetryKey,
-			};
+			return { ...grantRequest, telemetryKey } as TelemetryGrantRequest;
 		}
 		default:
 			throw Error('No such grantType for subscriptionType');

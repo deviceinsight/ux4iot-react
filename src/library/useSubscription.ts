@@ -30,6 +30,24 @@ export function useSubscription(
 	}, [onGrantError, onSubscriptionError]);
 
 	useEffect(() => {
+		async function last() {
+			try {
+				const sr = getSubscriptionRequest();
+				const response = await ux4iot.getLastValueForSubscriptionRequest(
+					sr as SubscriptionRequest,
+					onGrantErrorRef.current,
+					onSubscriptionErrorRef.current
+				);
+				console.log(response);
+				onMessage(sr.deviceId, response);
+			} catch (error) {
+				onSubscriptionErrorRef.current && onSubscriptionErrorRef.current(error);
+			}
+		}
+		last();
+	}, [getSubscriptionRequest, onMessage, ux4iot]);
+
+	useEffect(() => {
 		const subRequest = { sessionId, ...getSubscriptionRequest() };
 		async function sub() {
 			await ux4iot.subscribe(

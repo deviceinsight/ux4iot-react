@@ -6,6 +6,7 @@ import {
 } from './types';
 import { useSubscription } from './useSubscription';
 import { DeviceTwinSubscriptionRequest, TwinUpdate } from './ux4iot-shared';
+import { useUx4iot } from './Ux4iotContext';
 
 type HookOptions = {
 	onData?: (twin: TwinUpdate) => void; // breaking Twin -> TwinUpdate
@@ -18,6 +19,7 @@ export const useDeviceTwin = (
 	options: HookOptions = {}
 ): TwinUpdate | undefined => {
 	const { onData } = options;
+	const { ux4iot } = useUx4iot();
 	const onDataRef = useRef(onData);
 	const [twin, setTwin] = useState<TwinUpdate>(); // breaking Twin -> TwinUpdate
 
@@ -39,6 +41,11 @@ export const useDeviceTwin = (
 	> => {
 		return { deviceId, type: 'deviceTwin' };
 	}, [deviceId]);
+
+	const getLast = async () => {
+		const twin = await ux4iot.api.getLastDeviceTwin(deviceId);
+		setTwin(twin);
+	};
 
 	useSubscription(options, onDeviceTwin, subscriptionRequest);
 

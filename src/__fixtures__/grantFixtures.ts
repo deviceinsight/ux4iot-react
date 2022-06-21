@@ -4,13 +4,13 @@ import {
 	DirectMethodGrantRequest,
 	ConnectionStateGrantRequest,
 	DesiredPropertyGrantRequest,
-	RawD2CMessageGrantRequest,
+	D2CMessageGrantRequest,
 } from '../library';
 
 export const mockedTelemetryGrant = (
 	sessionId: string
 ): TelemetryGrantRequest => ({
-	grantType: 'subscribeToTelemetry',
+	type: 'telemetry',
 	deviceId: 'mockedDeviceId',
 	telemetryKey: 'mockedTelemetryKey',
 	sessionId: sessionId,
@@ -18,7 +18,7 @@ export const mockedTelemetryGrant = (
 export const mockedTelemetryGrant2 = (
 	sessionId: string
 ): TelemetryGrantRequest => ({
-	grantType: 'subscribeToTelemetry',
+	type: 'telemetry',
 	deviceId: 'mockedDeviceId2',
 	telemetryKey: 'mockedTelemetryKey2',
 	sessionId: sessionId,
@@ -26,14 +26,14 @@ export const mockedTelemetryGrant2 = (
 export const mockedDeviceTwinGrant = (
 	sessionId: string
 ): DeviceTwinGrantRequest => ({
-	grantType: 'subscribeToDeviceTwin',
+	type: 'deviceTwin',
 	deviceId: 'mockedDeviceId',
 	sessionId: sessionId,
 });
 export const mockedDirectMethodGrant = (
 	sessionId: string
 ): DirectMethodGrantRequest => ({
-	grantType: 'invokeDirectMethod',
+	type: 'directMethod',
 	deviceId: 'mockedDeviceId',
 	directMethodName: 'mockedDirectMethod',
 	sessionId: sessionId,
@@ -41,21 +41,21 @@ export const mockedDirectMethodGrant = (
 export const mockedConnectionStateGrant = (
 	sessionId: string
 ): ConnectionStateGrantRequest => ({
-	grantType: 'subscribeToConnectionState',
+	type: 'connectionState',
 	deviceId: 'mockedDeviceId',
 	sessionId: sessionId,
 });
 export const mockedDesiredPropertiesGrant = (
 	sessionId: string
 ): DesiredPropertyGrantRequest => ({
-	grantType: 'modifyDesiredProperties',
+	type: 'desiredProperties',
 	deviceId: 'mockedDeviceId',
 	sessionId: sessionId,
 });
-export const mockedRawD2CMessagesGrant = (
+export const mockedD2CMessagesGrant = (
 	sessionId: string
-): RawD2CMessageGrantRequest => ({
-	grantType: 'subscribeToD2CMessages',
+): D2CMessageGrantRequest => ({
+	type: 'd2cMessages',
 	deviceId: 'mockedDeviceId',
 	sessionId: sessionId,
 });

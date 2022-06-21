@@ -3,10 +3,10 @@ import { Ux4iotContextProvider } from './library/Ux4iotContext';
 import { TestInvokeDirectMethod } from './TestInvokeDirectMethod';
 import { TestPatchDesiredProperties } from './TestPatchDesiredProperties';
 import { TestSingleSubscriber } from './TestSingleSubscriber';
-import { TestRawD2CMessageSubscriber } from './TestRawD2CMessageSubscriber';
 import { TestSubscriber } from './TestSubscriber';
 import { TestMultiTelemetry } from './TestMultiTelemetry';
 import { TestMultiConnectionState } from './TestMultiConnectionState';
+import { TestD2CMessageSubscriber } from './TestD2CMessageSubscriber';
 
 const { VITE_UX4IOT_CONNECTION_STRING } = import.meta.env;
 
@@ -136,14 +136,14 @@ function App(): JSX.Element | null {
 						)}
 					</div>
 					<div>
-						<label>Show Raw Message Subscriber</label>
+						<label>Show D2C Message Subscriber</label>
 						<input
 							type="checkbox"
 							checked={showApp4}
 							onChange={() => setShowApp4(!showApp4)}
 						/>
 						{showApp4 && (
-							<TestRawD2CMessageSubscriber deviceId="simulated-device" />
+							<TestD2CMessageSubscriber deviceId="simulated-device" />
 						)}
 					</div>
 					<div>
