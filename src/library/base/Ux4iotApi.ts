@@ -43,6 +43,7 @@ export class Ux4iotApi {
 	}
 
 	setSessionId(sessionId: string) {
+		console.log('update sessionId to', sessionId);
 		this.sessionId = sessionId;
 	}
 
@@ -106,7 +107,10 @@ export class Ux4iotApi {
 		});
 	}
 
-	public async getLastTelemetryValues(deviceId: string, telemetryKey: string) {
+	public async getLastTelemetryValues(
+		deviceId: string,
+		telemetryKey: string
+	): Promise<{ deviceId: string; data: any; timestamp: string }> {
 		if (!this.sessionId) {
 			return Promise.reject('Ux4iot has no session');
 		}
@@ -122,7 +126,9 @@ export class Ux4iotApi {
 		return response.data;
 	}
 
-	public async getLastDeviceTwin(deviceId: string) {
+	public async getLastDeviceTwin(
+		deviceId: string
+	): Promise<{ deviceId: string; data: any; timestamp: string }> {
 		if (!this.sessionId) {
 			return Promise.reject('Ux4iot has no session');
 		}
@@ -135,7 +141,9 @@ export class Ux4iotApi {
 		return response.data;
 	}
 
-	public async getLastConnectionState(deviceId: string) {
+	public async getLastConnectionState(
+		deviceId: string
+	): Promise<{ deviceId: string; data: any; timestamp: string }> {
 		if (!this.sessionId) {
 			return Promise.reject('Ux4iot has no session');
 		}

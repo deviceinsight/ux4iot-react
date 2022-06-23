@@ -15,18 +15,11 @@ import {
 	DeviceTwinSubscriptionRequest,
 	DirectMethodGrantRequest,
 	GrantRequest,
-	Message,
 	SubscriptionRequest,
 	TelemetryGrantRequest,
 	TelemetrySubscriptionRequest,
 } from '../ux4iot-shared';
-import {
-	isTelemetryMessage,
-	isConnectionStateMessage,
-	isD2CMessage,
-	isDeviceTwinMessage,
-	grantRequestsEqual,
-} from './utils';
+import { grantRequestsEqual } from './utils';
 
 type Subscription =
 	| TelemetrySubscription
@@ -239,6 +232,9 @@ export function removeSubscription(
 	subscriberId: string,
 	subscriptionRequest: SubscriptionRequest
 ): Subscription | undefined {
+	if (!state.subscriptions[subscriberId]) {
+		return;
+	}
 	const { type, deviceId } = subscriptionRequest;
 	switch (type) {
 		case 'deviceTwin':
@@ -345,41 +341,6 @@ export function removeGrant(grantRequest: GrantRequest) {
 			break;
 		default:
 			break;
-	}
-}
-
-export function sendMessage(message: Message) {
-	for (const subscriptions of Object.values(state.subscriptions)) {
-		for (const s of subscriptions) {
-			const { type, deviceId } = s;
-			if (deviceId === message.deviceId) {
-				switch (type) {
-					case 'telemetry': {
-						if (isTelemetryMessage(message)) {
-							const filteredTelemetry: Record<string, unknown> = {};
-							for (const telemetryKey of s.telemetryKeys) {
-								filteredTelemetry[telemetryKey] =
-									message.telemetry[telemetryKey];
-							}
-							s.onData(message.deviceId, filteredTelemetry, message.timestamp);
-						}
-						break;
-					}
-					case 'connectionState':
-						isConnectionStateMessage(message) &&
-							s.onData(message.deviceId, message.connectionState.connected);
-						break;
-					case 'd2cMessages':
-						isD2CMessage(message) &&
-							s.onData(message.deviceId, message.message, message.timestamp);
-						break;
-					case 'deviceTwin':
-						isDeviceTwinMessage(message) &&
-							s.onData(message.deviceId, message.deviceTwin);
-						break;
-				}
-			}
-		}
 	}
 }
 

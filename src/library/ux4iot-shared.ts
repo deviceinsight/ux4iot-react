@@ -71,7 +71,7 @@ export type ConnectionState = {
 
 export type MessageBase<T> = {
 	deviceId: DeviceId;
-	timestamp: string | undefined;
+	timestamp: string;
 } & T;
 
 export type TelemetryMessage = MessageBase<{

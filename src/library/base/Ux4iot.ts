@@ -16,12 +16,17 @@ import {
 	IoTHubResponse,
 	Message,
 	SubscriptionRequest,
-	TwinUpdate,
 } from '../ux4iot-shared';
 
 import { Ux4iotApi } from './Ux4iotApi';
 import * as ux4iotState from './ux4iotState';
-import { getGrantFromSubscriptionRequest } from './utils';
+import {
+	getGrantFromSubscriptionRequest,
+	isConnectionStateMessage,
+	isD2CMessage,
+	isDeviceTwinMessage,
+	isTelemetryMessage,
+} from './utils';
 import { DeviceMethodParams } from 'azure-iothub';
 
 const RECONNECT_TIMEOUT = 5000;
@@ -37,11 +42,6 @@ export class Ux4iot {
 	sessionId = '';
 	socket: Socket | undefined;
 	devMode: boolean;
-	//   - state: Ux4iotState
-	//     - methods:
-	//       - private hasGrantFor(deviceId, telemetryKey): checks if theres a need to ask for grant
-	//       - private hasSubscriptionFor(deviceId, telemetryKey): checks if theres a need to subscribe
-	//       - onStateChange
 	api: Ux4iotApi;
 	retryTimeoutAfterError = 0;
 	onSocketConnectionUpdate?: ConnectionUpdateFunction;
@@ -71,11 +71,10 @@ export class Ux4iot {
 				const sessionId = await this.api.getSessionId();
 				this.sessionId = sessionId;
 			} catch (error) {
-				this.onSocketConnectionUpdate &&
-					this.onSocketConnectionUpdate(
-						'ux4iot_unreachable',
-						INIT_ERROR_MESSAGE
-					);
+				this.onSocketConnectionUpdate?.(
+					'ux4iot_unreachable',
+					INIT_ERROR_MESSAGE
+				);
 				this.log(INIT_ERROR_MESSAGE);
 				this.tryReconnect();
 				return;
@@ -103,11 +102,10 @@ export class Ux4iot {
 		this.log(`Connected to ${this.api.getSocketURL(this.sessionId)}`);
 		this.log('Successfully reconnected. Resubscribing to old state...');
 		this.api.setSessionId(this.sessionId);
-		this.onSessionId && this.onSessionId(this.sessionId);
-		this.onSocketConnectionUpdate &&
-			this.onSocketConnectionUpdate('socket_connect');
+		this.onSessionId?.(this.sessionId);
+		this.onSocketConnectionUpdate?.('socket_connect');
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
-		// await this.grantableState?.establishAll();
+		ux4iotState.resetState();
 	}
 
 	private onConnectError() {
@@ -116,29 +114,26 @@ export class Ux4iot {
 				this.sessionId
 			)}`
 		);
-		this.onSocketConnectionUpdate &&
-			this.onSocketConnectionUpdate(
-				'socket_connect_error',
-				DISCONNECTED_MESSAGE
-			);
+		this.onSocketConnectionUpdate?.(
+			'socket_connect_error',
+			DISCONNECTED_MESSAGE
+		);
 		this.tryReconnect();
 	}
 
 	private onDisconnect(error: unknown) {
 		if (error === 'io client disconnect') {
 			this.log(CLIENT_DISCONNECTED_MESSAGE, error);
-			this.onSocketConnectionUpdate &&
-				this.onSocketConnectionUpdate(
-					'socket_disconnect',
-					CLIENT_DISCONNECTED_MESSAGE
-				);
+			this.onSocketConnectionUpdate?.(
+				'socket_disconnect',
+				CLIENT_DISCONNECTED_MESSAGE
+			);
 		} else {
 			this.log(DISCONNECTED_MESSAGE, error);
-			this.onSocketConnectionUpdate &&
-				this.onSocketConnectionUpdate(
-					'socket_disconnect',
-					DISCONNECTED_MESSAGE
-				);
+			this.onSocketConnectionUpdate?.(
+				'socket_disconnect',
+				DISCONNECTED_MESSAGE
+			);
 			this.socket = undefined;
 			this.tryReconnect();
 		}
@@ -147,17 +142,73 @@ export class Ux4iot {
 	public async destroy(): Promise<void> {
 		this.socket?.disconnect();
 		this.socket = undefined;
-		// await this.grantableState?.unsubscribeAll();
+		await this.unsubscribeAll();
+		ux4iotState.resetState();
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		this.log('socket with id', this.sessionId, 'destroyed');
 	}
 
-	private async onData(message: Message) {
-		//   - onData:
-		//     for each subscriptionId.onDataCallback in ux4iotState.subscriptions
-		//       - match deviceId, match type, aggregate telemetry
-		//         - onDataCallback(deviceId, data)
-		ux4iotState.sendMessage(message);
+	private async onData(m: Message) {
+		for (const subscriptions of Object.values(
+			ux4iotState.state.subscriptions
+		)) {
+			for (const s of subscriptions) {
+				const { type, deviceId } = s;
+				if (deviceId === m.deviceId) {
+					switch (type) {
+						case 'telemetry': {
+							if (isTelemetryMessage(m)) {
+								const telemetry: Record<string, unknown> = {};
+								for (const telemetryKey of s.telemetryKeys) {
+									telemetry[telemetryKey] = m.telemetry[telemetryKey];
+								}
+								s.onData(m.deviceId, telemetry, m.timestamp);
+							}
+							break;
+						}
+						case 'connectionState':
+							isConnectionStateMessage(m) &&
+								s.onData(m.deviceId, m.connectionState.connected, m.timestamp);
+							break;
+						case 'd2cMessages':
+							isD2CMessage(m) && s.onData(m.deviceId, m.message, m.timestamp);
+							break;
+						case 'deviceTwin':
+							isDeviceTwinMessage(m) &&
+								s.onData(m.deviceId, m.deviceTwin, m.timestamp);
+							break;
+					}
+				}
+			}
+		}
+	}
+
+	async unsubscribeAll() {
+		for (const [subscriberId, subscriptions] of Object.entries(
+			ux4iotState.state.subscriptions
+		)) {
+			for (const s of subscriptions) {
+				const { onData, ...subRequest } = s;
+				if (s.type === 'telemetry') {
+					const { deviceId, type, telemetryKeys } = s;
+					for (const telemetryKey of telemetryKeys) {
+						const subReq = {
+							sessionId: this.sessionId,
+							telemetryKey,
+							deviceId,
+							type,
+						};
+						await this.unsubscribe(subscriberId, subReq);
+					}
+				} else {
+					const subReq = {
+						sessionId: this.sessionId,
+						...subRequest,
+					} as SubscriptionRequest;
+					await this.unsubscribe(subscriberId, subReq);
+				}
+			}
+		}
 	}
 
 	async patchDesiredProperties(
@@ -174,9 +225,6 @@ export class Ux4iot {
 			grantRequest.deviceId,
 			desiredPropertyPatch
 		);
-		//   - patchDesiredProperties( deviceId, patch)
-		//     - catch notReady: Error
-		//     - catch notGranted: Youre not authorized
 	}
 
 	async invokeDirectMethod(
@@ -190,9 +238,6 @@ export class Ux4iot {
 		} as GrantRequest;
 		await this.grant(grantReq, onGrantError);
 		return await this.api.invokeDirectMethod(grantRequest.deviceId, options);
-		//   - invokeDirectMethod(deviceId, directMethod)
-		//     - catch notReady: Error
-		//     - catch notGranted: Youre not authorized
 	}
 
 	async grant(grantRequest: GrantRequest, onGrantError?: GrantErrorCallback) {
@@ -200,19 +245,11 @@ export class Ux4iot {
 			return;
 		}
 		try {
-			ux4iotState.addGrant(grantRequest);
 			await this.api.requestGrant(grantRequest);
+			ux4iotState.addGrant(grantRequest);
 		} catch (error) {
-			onGrantError && onGrantError(error as GRANT_RESPONSES);
-			ux4iotState.removeGrant(grantRequest);
+			onGrantError?.(error as GRANT_RESPONSES);
 		}
-		//   - grant(grant)
-		//     if ux4iot.ready === false:
-		//       - enqueue grantrequest
-		//     else
-		//       - requests grant if grant isnt already in state
-		//         - success: add grant to ux4iotState
-		//         - failure: onGrantError
 	}
 
 	async subscribe(
@@ -222,29 +259,29 @@ export class Ux4iot {
 		onSubscriptionError?: SubscriptionErrorCallback,
 		onGrantError?: GrantErrorCallback
 	) {
-		const subReq = {
+		const sr = {
 			...subscriptionRequest,
 			sessionId: this.sessionId,
 		} as SubscriptionRequest;
-		ux4iotState.addSubscription(subscriberId, subReq, onData);
-		const grantRequest = getGrantFromSubscriptionRequest(subReq);
+		ux4iotState.addSubscription(subscriberId, sr, onData);
+		const grantRequest = getGrantFromSubscriptionRequest(sr);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				if (ux4iotState.getNumberOfSubscribers(subReq) === 1) {
+				const response = await this.getLastValueForSubscriptionRequest(sr);
+				response &&
+					onData(response.deviceId, response.data, response.timestamp);
+				if (ux4iotState.getNumberOfSubscribers(sr) === 1) {
 					await this.api.subscribe(subscriptionRequest);
 				}
 			} catch (error) {
-				onSubscriptionError && onSubscriptionError(error);
-				ux4iotState.removeSubscription(subscriberId, subReq);
+				onSubscriptionError?.(error);
+				ux4iotState.removeSubscription(subscriberId, sr);
 			}
 		} else {
-			onSubscriptionError && onSubscriptionError('No grant for subscription');
+			onSubscriptionError?.('No grant for subscription');
+			ux4iotState.removeSubscription(subscriberId, sr);
 		}
-		//   - subscribe(subscriberId, subReq)
-		//     - subscribes data if data isnt already subscribed to
-		//       - success: add subscription to ux4iotState
-		//       - failure: onSubscriptionError
 	}
 
 	async unsubscribe(
@@ -253,35 +290,26 @@ export class Ux4iot {
 		onSubscriptionError?: SubscriptionErrorCallback,
 		onGrantError?: GrantErrorCallback
 	) {
-		const subReq = {
+		const sr = {
 			...subscriptionRequest,
 			sessionId: this.sessionId,
 		} as SubscriptionRequest;
-		const subscription = ux4iotState.removeSubscription(subscriberId, subReq);
-		const grantRequest = getGrantFromSubscriptionRequest(subReq);
+		const subscription = ux4iotState.removeSubscription(subscriberId, sr);
+		const grantRequest = getGrantFromSubscriptionRequest(sr);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				if (ux4iotState.getNumberOfSubscribers(subReq) === 0) {
+				if (ux4iotState.getNumberOfSubscribers(sr) === 0) {
 					await this.api.unsubscribe(subscriptionRequest);
 				}
 			} catch (error) {
-				onSubscriptionError && onSubscriptionError(error);
-				if (subscription) {
-					ux4iotState.addSubscription(
-						subscriberId,
-						subReq,
-						subscription?.onData
-					);
-				}
+				ux4iotState.addSubscription(subscriberId, sr, subscription.onData);
+				onSubscriptionError?.(error);
 			}
 		} else {
-			onSubscriptionError && onSubscriptionError('No grant for subscription');
+			onSubscriptionError?.('No grant for subscription');
+			ux4iotState.addSubscription(subscriberId, sr, subscription.onData);
 		}
-		//   - unsubscribe(subscriberId, subReq)
-		//     - unsubscribes data if data isnt still subscribed by anyone else
-		//       - success: remove subscription to ux4iotState
-		//       - failure: onSubscriptionError
 	}
 
 	hasSubscription(
@@ -295,11 +323,13 @@ export class Ux4iot {
 		const registered = ux4iotState.state.subscriptions[subscriberId];
 		const subscriptions: Record<string, string[]> = {};
 
-		for (const s of registered) {
-			if (s.type === 'telemetry') {
-				subscriptions[s.deviceId] = s.telemetryKeys;
-			} else {
-				subscriptions[s.deviceId] = [];
+		if (registered) {
+			for (const s of registered) {
+				if (s.type === 'telemetry') {
+					subscriptions[s.deviceId] = s.telemetryKeys;
+				} else {
+					subscriptions[s.deviceId] = [];
+				}
 			}
 		}
 		return subscriptions;
@@ -320,7 +350,7 @@ export class Ux4iot {
 						await this.unsubscribe(subscriberId, s);
 					}
 				} catch (error) {
-					console.log('couldnt unsubscribe subscriberId', subscriberId, error);
+					console.warn('couldnt unsubscribe subscriberId', subscriberId, error);
 				}
 			}
 		}
@@ -331,7 +361,7 @@ export class Ux4iot {
 		subscriptionRequest: SubscriptionRequest,
 		onGrantError?: GrantErrorCallback,
 		onSubscriptionError?: SubscriptionErrorCallback
-	) {
+	): Promise<{ deviceId: string; data: any; timestamp: string } | undefined> {
 		const { type, deviceId } = subscriptionRequest;
 		const grantRequest = getGrantFromSubscriptionRequest(subscriptionRequest);
 		await this.grant(grantRequest, onGrantError);
@@ -346,12 +376,12 @@ export class Ux4iot {
 					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
 				}
 				case 'd2cMessages':
-					return Promise.resolve();
+					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
 				default:
-					return Promise.resolve();
+					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
 			}
 		} catch (error) {
-			onSubscriptionError && onSubscriptionError(error);
+			onSubscriptionError?.(error);
 		}
 	}
 }

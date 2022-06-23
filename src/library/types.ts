@@ -1,4 +1,4 @@
-import { GrantRequest, TwinUpdate } from './ux4iot-shared';
+import { GrantRequest, MessageBase, TwinUpdate } from './ux4iot-shared';
 
 export type Subscribers = Record<string, string[]>;
 
@@ -45,24 +45,16 @@ export function isProdOptions(
 	return !!options.grantRequestFunction && !!options.ux4iotURL;
 }
 
-export type TelemetryCallback = (
+export type MessageCallbackBase<T> = (
 	deviceId: string,
-	telemetry: Record<string, unknown>,
-	timestamp?: string
+	data: T,
+	timestamp: string
 ) => void;
-export type DeviceTwinCallback = (
-	deviceId: string,
-	deviceTwin: TwinUpdate
-) => void;
-export type ConnectionStateCallback = (
-	deviceId: string,
-	connectionState: boolean
-) => void;
-export type D2CMessageCallback = (
-	deviceId: string,
-	message: Record<string, unknown>,
-	timestamp?: string
-) => void;
+
+export type TelemetryCallback = MessageCallbackBase<Record<string, unknown>>;
+export type DeviceTwinCallback = MessageCallbackBase<TwinUpdate>;
+export type ConnectionStateCallback = MessageCallbackBase<boolean>;
+export type D2CMessageCallback = MessageCallbackBase<Record<string, unknown>>;
 
 export type MessageCallback =
 	| TelemetryCallback

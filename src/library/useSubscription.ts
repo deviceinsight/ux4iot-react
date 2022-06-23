@@ -1,6 +1,10 @@
 import { useEffect, useRef } from 'react';
 import { v4 as uuid } from 'uuid';
-import { GrantErrorCallback, SubscriptionErrorCallback } from './types';
+import {
+	GrantErrorCallback,
+	MessageCallback,
+	SubscriptionErrorCallback,
+} from './types';
 import { SubscriptionRequest } from './ux4iot-shared';
 import { useUx4iot } from './Ux4iotContext';
 
@@ -10,11 +14,7 @@ export type HookOptions = {
 };
 export function useSubscription(
 	options: HookOptions = {},
-	onMessage: (
-		deviceId: string,
-		data: any,
-		timestamp?: string | undefined
-	) => void,
+	onMessage: MessageCallback,
 	getSubscriptionRequest: () => Omit<SubscriptionRequest, 'sessionId'>
 ) {
 	const { ux4iot, sessionId } = useUx4iot();
@@ -30,29 +30,10 @@ export function useSubscription(
 	}, [onGrantError, onSubscriptionError]);
 
 	useEffect(() => {
-		async function last() {
-			try {
-				const sr = getSubscriptionRequest();
-				const response = await ux4iot.getLastValueForSubscriptionRequest(
-					sr as SubscriptionRequest,
-					onGrantErrorRef.current,
-					onSubscriptionErrorRef.current
-				);
-				console.log(response);
-				onMessage(sr.deviceId, response);
-			} catch (error) {
-				onSubscriptionErrorRef.current && onSubscriptionErrorRef.current(error);
-			}
-		}
-		last();
-	}, [getSubscriptionRequest, onMessage, ux4iot]);
-
-	useEffect(() => {
-		const subRequest = { sessionId, ...getSubscriptionRequest() };
 		async function sub() {
 			await ux4iot.subscribe(
 				subscriptionId.current,
-				subRequest,
+				getSubscriptionRequest(),
 				onMessage,
 				onSubscriptionErrorRef.current,
 				onGrantErrorRef.current
@@ -66,7 +47,7 @@ export function useSubscription(
 			async function unsub() {
 				await ux4iot.unsubscribe(
 					subId,
-					subRequest,
+					getSubscriptionRequest(),
 					onSubscriptionErrorRef.current,
 					onGrantErrorRef.current
 				);
