@@ -48,6 +48,7 @@ export const Ux4iotContextProvider: ComponentType<Ux4iotProviderProps> = ({
 		const instance = ux4iot.current;
 		return () => {
 			instance.destroy();
+			ux4iotInstance = undefined;
 		};
 	}, []);
 
@@ -60,6 +61,7 @@ export const Ux4iotContextProvider: ComponentType<Ux4iotProviderProps> = ({
 
 export function useUx4iot(): { ux4iot: Ux4iot; sessionId: string } {
 	const { ux4iot, sessionId } = useContext(Ux4iotContext);
+	console.log('rendered');
 
 	if (ux4iot === undefined) {
 		throw new Error(

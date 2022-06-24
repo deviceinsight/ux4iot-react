@@ -19,7 +19,11 @@ type UseMultiConnectionStateOutput = {
 
 type HookOptions = {
 	initialSubscribers?: string[];
-	onData?: (deviceId: string, connectionState: boolean) => void;
+	onData?: (
+		deviceId: string,
+		connectionState: boolean,
+		timestamp: string
+	) => void;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
@@ -55,12 +59,12 @@ export const useMultiConnectionState = (
 	}, [onData, onGrantError, onSubscriptionError]);
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
-		(deviceId, connectionState) => {
+		(deviceId, connectionState, timestamp) => {
 			setConnectionStates(prevState => ({
 				...prevState,
 				[deviceId]: connectionState,
 			}));
-			onDataRef.current && onDataRef.current(deviceId, connectionState);
+			onDataRef.current?.(deviceId, connectionState, timestamp);
 		},
 		[]
 	);

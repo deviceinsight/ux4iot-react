@@ -106,6 +106,7 @@ export class Ux4iot {
 		this.onSocketConnectionUpdate?.('socket_connect');
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		ux4iotState.resetState();
+		// establish all?
 	}
 
 	private onConnectError() {
@@ -142,8 +143,6 @@ export class Ux4iot {
 	public async destroy(): Promise<void> {
 		this.socket?.disconnect();
 		this.socket = undefined;
-		await this.unsubscribeAll();
-		ux4iotState.resetState();
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 		this.log('socket with id', this.sessionId, 'destroyed');
 	}
@@ -168,7 +167,7 @@ export class Ux4iot {
 						}
 						case 'connectionState':
 							isConnectionStateMessage(m) &&
-								s.onData(m.deviceId, m.connectionState.connected, m.timestamp);
+								s.onData(m.deviceId, m.connectionState, m.timestamp);
 							break;
 						case 'd2cMessages':
 							isD2CMessage(m) && s.onData(m.deviceId, m.message, m.timestamp);
@@ -275,12 +274,12 @@ export class Ux4iot {
 					await this.api.subscribe(subscriptionRequest);
 				}
 			} catch (error) {
-				onSubscriptionError?.(error);
 				ux4iotState.removeSubscription(subscriberId, sr);
+				onSubscriptionError?.(error);
 			}
 		} else {
-			onSubscriptionError?.('No grant for subscription');
 			ux4iotState.removeSubscription(subscriberId, sr);
+			onSubscriptionError?.('No grant for subscription');
 		}
 	}
 
@@ -307,8 +306,8 @@ export class Ux4iot {
 				onSubscriptionError?.(error);
 			}
 		} else {
-			onSubscriptionError?.('No grant for subscription');
 			ux4iotState.addSubscription(subscriberId, sr, subscription.onData);
+			onSubscriptionError?.('No grant for subscription');
 		}
 	}
 
@@ -316,7 +315,10 @@ export class Ux4iot {
 		subscriberId: string,
 		subscriptionRequest: SubscriptionRequest
 	) {
-		return ux4iotState.hasSubscription(subscriberId, subscriptionRequest);
+		return ux4iotState.hasSubscription(subscriberId, {
+			sessionId: this.sessionId,
+			...subscriptionRequest,
+		});
 	}
 
 	getSubscriberIdSubscriptions(subscriberId: string): Record<string, string[]> {

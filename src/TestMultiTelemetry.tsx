@@ -8,13 +8,16 @@ type Props = {
 
 export const TestMultiTelemetry: FC<Props> = ({ deviceId }) => {
 	const [ts, setTs] = useState<string | undefined>('');
+	const [grantError, setGrantError] = useState<string>('');
+	const [subError, setSubError] = useState<string>('');
 	const { telemetry, toggleTelemetry, isSubscribed } = useMultiTelemetry({
 		initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
 		onData: (deviceId, message, timestamp) => {
 			setTs(timestamp);
 			console.log('useMultiTelemetry', deviceId, message, timestamp);
 		},
-		onGrantError: error => console.log(error),
+		onGrantError: error => setGrantError(error),
+		onSubscriptionError: error => setSubError(error),
 	});
 
 	return (
@@ -50,6 +53,8 @@ export const TestMultiTelemetry: FC<Props> = ({ deviceId }) => {
 				<div>
 					Received at <pre>{ts}</pre>
 				</div>
+				<div>grant error: {grantError.toString()}</div>
+				<div>sub error: {subError.toString()}</div>
 			</div>
 		</div>
 	);
