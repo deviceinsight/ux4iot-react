@@ -31,7 +31,7 @@ export const usePatchDesiredProperties = (
 				type: 'desiredProperties',
 				deviceId,
 			};
-			return ux4iot.patchDesiredProperties(
+			return await ux4iot.patchDesiredProperties(
 				req,
 				desiredProperties,
 				onGrantErrorRef.current

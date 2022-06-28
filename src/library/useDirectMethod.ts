@@ -25,7 +25,6 @@ export const useDirectMethod = (
 	useEffect(() => {
 		onGrantErrorRef.current = onGrantError;
 	}, [onGrantError]);
-	console.log('useDirectMethod', deviceId, directMethodName, ux4iot);
 
 	const directMethod = useCallback(
 		async (

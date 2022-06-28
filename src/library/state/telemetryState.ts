@@ -6,23 +6,6 @@ export type TelemetryValue = {
 };
 export type TelemetryState = Record<string, Record<string, TelemetryValue>>;
 
-/*
-{ 
-  deviceId1: {
-    pressure: {
-      value: 123,
-      timestamp: Date
-    }
-  }
-  deviceId2: {
-    pressure: {
-      value: 123,
-      timestamp: Date
-    }
-  }
-}
-*/
-
 export type ADD_DATA_ACTION = {
 	type: 'ADD_DATA';
 	deviceId: string;

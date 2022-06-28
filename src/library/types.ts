@@ -1,4 +1,4 @@
-import { GrantRequest, MessageBase, TwinUpdate } from './ux4iot-shared';
+import { GrantRequest, TwinUpdate } from './ux4iot-shared';
 
 export type Subscribers = Record<string, string[]>;
 
