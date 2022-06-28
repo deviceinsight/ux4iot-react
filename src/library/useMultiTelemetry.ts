@@ -32,11 +32,7 @@ type UseMultiTelemetryOutput = {
 
 type HookOptions = {
 	initialSubscribers?: Subscribers;
-	onData?: (
-		deviceId: string,
-		data: Record<string, unknown>,
-		timestamp: string | undefined
-	) => void;
+	onData?: TelemetryCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };

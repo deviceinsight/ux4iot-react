@@ -3,12 +3,13 @@ import {
 	TelemetryCallback,
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
+	MessageCallbackBase,
 } from './types';
 import { TelemetrySubscriptionRequest } from './ux4iot-shared';
 import { useSubscription } from './useSubscription';
 
 type HookOptions<T> = {
-	onData?: (data: T, timestamp: string | undefined) => void;
+	onData?: MessageCallbackBase<T>;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
@@ -34,7 +35,7 @@ export const useTelemetry = <T = any>(
 			const maybeValue = message[telemetryKey];
 			if (maybeValue !== undefined) {
 				setValue(maybeValue as T);
-				onDataRef.current && onDataRef.current(maybeValue as T, timestamp);
+				onDataRef.current?.(deviceId, maybeValue as T, timestamp);
 			}
 		},
 		[telemetryKey]

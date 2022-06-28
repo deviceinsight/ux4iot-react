@@ -8,7 +8,7 @@ import { useSubscription } from './useSubscription';
 import { ConnectionStateSubscriptionRequest } from './ux4iot-shared';
 
 type HookOptions = {
-	onData?: (connectionState: boolean) => void;
+	onData?: ConnectionStateCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
@@ -26,10 +26,9 @@ export const useConnectionState = (
 	}, [onData]);
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
-		// TODO: align all data callbacks to be the same
-		(deviceId, state) => {
+		(deviceId, state, timestamp) => {
 			setConnectionState(state);
-			onDataRef.current && onDataRef.current(state);
+			onDataRef.current?.(deviceId, state, timestamp);
 		},
 		[setConnectionState]
 	);

@@ -7,15 +7,15 @@ import {
 import { useSubscription } from './useSubscription';
 import { D2CMessageSubscriptionRequest } from './ux4iot-shared';
 
-type HookOptions<T> = {
-	onData?: (data: T, timestamp: string | undefined) => void;
+type HookOptions = {
+	onData?: D2CMessageCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
-export const useD2CMessages = <T>(
+export const useD2CMessages = <T extends Record<string, unknown>>(
 	deviceId: string,
-	options: HookOptions<T> = {}
+	options: HookOptions = {}
 ): T | undefined => {
 	const { onData } = options;
 	const onDataRef = useRef(onData);
@@ -26,9 +26,9 @@ export const useD2CMessages = <T>(
 	}, [onData]);
 
 	const onMessage: D2CMessageCallback = useCallback(
-		(deviceId: string, message: unknown, timestamp: string | undefined) => {
-			setLastMessage(message as T);
-			onDataRef.current && onDataRef.current(message as T, timestamp);
+		(deviceId: string, message: T, timestamp: string | undefined) => {
+			setLastMessage(message);
+			onDataRef.current?.(deviceId, message, timestamp);
 		},
 		[setLastMessage]
 	);

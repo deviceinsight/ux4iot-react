@@ -28,7 +28,7 @@ export const useDeviceTwin = (
 	const onDeviceTwin: DeviceTwinCallback = useCallback(
 		(deviceId, deviceTwin, timestamp) => {
 			setTwin(deviceTwin);
-			onDataRef.current && onDataRef.current(deviceId, deviceTwin, timestamp);
+			onDataRef.current?.(deviceId, deviceTwin, timestamp);
 		},
 		[setTwin]
 	);
