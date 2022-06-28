@@ -27,7 +27,7 @@ describe('ux4iotState', () => {
 			grants: {
 				deviceTwin: [],
 				connectionState: [],
-				d2cMessage: [],
+				d2cMessages: [],
 				telemetry: [],
 				desiredProperties: [],
 				directMethod: [],
@@ -53,7 +53,7 @@ describe('ux4iotState', () => {
 					sessionId: 'sessionId',
 				},
 			],
-			d2cMessage: [
+			d2cMessages: [
 				{
 					deviceId: 'mockedDeviceId',
 					type: 'd2cMessages',
@@ -125,7 +125,7 @@ describe('ux4iotState', () => {
 		expect(ux4iotState.state.grants).toEqual({
 			deviceTwin: [],
 			connectionState: [],
-			d2cMessage: [],
+			d2cMessages: [],
 			telemetry: [
 				{
 					deviceId: 'mockedDeviceId',
@@ -158,12 +158,32 @@ describe('ux4iotState', () => {
 					onData: m,
 					telemetryKeys: ['mockedTelemetryKey'],
 					type: 'telemetry',
+					sessionId,
 				},
 			],
-			sub2: [{ deviceId: 'mockedDeviceId', onData: m, type: 'deviceTwin' }],
-			sub3: [{ deviceId: 'mockedDeviceId', onData: m, type: 'd2cMessages' }],
+			sub2: [
+				{
+					deviceId: 'mockedDeviceId',
+					onData: m,
+					type: 'deviceTwin',
+					sessionId,
+				},
+			],
+			sub3: [
+				{
+					deviceId: 'mockedDeviceId',
+					onData: m,
+					type: 'd2cMessages',
+					sessionId,
+				},
+			],
 			sub4: [
-				{ deviceId: 'mockedDeviceId', onData: m, type: 'connectionState' },
+				{
+					deviceId: 'mockedDeviceId',
+					onData: m,
+					type: 'connectionState',
+					sessionId,
+				},
 			],
 		});
 	});
@@ -192,18 +212,39 @@ describe('ux4iotState', () => {
 						deviceId: 'mockedDeviceId',
 						telemetryKeys: ['mockedTelemetryKey', 'mockedTelemetryKey2'],
 						onData: m,
+						sessionId,
 					},
 					{
 						type: 'telemetry',
 						deviceId: 'mockedDeviceId2',
 						telemetryKeys: ['mockedTelemetryKey2'],
 						onData: m,
+						sessionId,
 					},
 				],
-				sub2: [{ type: 'deviceTwin', deviceId: 'mockedDeviceId', onData: m }],
-				sub3: [{ type: 'd2cMessages', deviceId: 'mockedDeviceId', onData: m }],
+				sub2: [
+					{
+						type: 'deviceTwin',
+						deviceId: 'mockedDeviceId',
+						onData: m,
+						sessionId,
+					},
+				],
+				sub3: [
+					{
+						type: 'd2cMessages',
+						deviceId: 'mockedDeviceId',
+						onData: m,
+						sessionId,
+					},
+				],
 				sub4: [
-					{ type: 'connectionState', deviceId: 'mockedDeviceId', onData: m },
+					{
+						type: 'connectionState',
+						deviceId: 'mockedDeviceId',
+						onData: m,
+						sessionId,
+					},
 				],
 			})
 		);
@@ -254,12 +295,14 @@ describe('ux4iotState', () => {
 						deviceId: 'mockedDeviceId',
 						telemetryKeys: ['mockedTelemetryKey2'],
 						onData: m,
+						sessionId,
 					},
 					{
 						type: 'telemetry',
 						deviceId: 'mockedDeviceId2',
 						telemetryKeys: ['mockedTelemetryKey2'],
 						onData: m,
+						sessionId,
 					},
 				],
 			})

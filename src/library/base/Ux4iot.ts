@@ -102,10 +102,10 @@ export class Ux4iot {
 		this.log(`Connected to ${this.api.getSocketURL(this.sessionId)}`);
 		this.log('Successfully reconnected. Resubscribing to old state...');
 		this.api.setSessionId(this.sessionId);
+		ux4iotState.resetState();
 		this.onSessionId?.(this.sessionId);
 		this.onSocketConnectionUpdate?.('socket_connect');
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
-		ux4iotState.resetState();
 		// establish all?
 	}
 
@@ -262,7 +262,6 @@ export class Ux4iot {
 			...subscriptionRequest,
 			sessionId: this.sessionId,
 		} as SubscriptionRequest;
-		ux4iotState.addSubscription(subscriberId, sr, onData);
 		const grantRequest = getGrantFromSubscriptionRequest(sr);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
@@ -270,15 +269,23 @@ export class Ux4iot {
 				const response = await this.getLastValueForSubscriptionRequest(sr);
 				response &&
 					onData(response.deviceId, response.data, response.timestamp);
-				if (ux4iotState.getNumberOfSubscribers(sr) === 1) {
+			} catch (error) {
+				console.log(error);
+			}
+			try {
+				// this if block is used as an optimization.
+				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
+				// If the request fails, then we do not need to remove the subscription, since it will only be added after
+				// the subscribe request is successful
+				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
+				if (ux4iotState.getNumberOfSubscribers(sr) === 0) {
 					await this.api.subscribe(subscriptionRequest);
 				}
+				ux4iotState.addSubscription(subscriberId, sr, onData);
 			} catch (error) {
-				ux4iotState.removeSubscription(subscriberId, sr);
 				onSubscriptionError?.(error);
 			}
 		} else {
-			ux4iotState.removeSubscription(subscriberId, sr);
 			onSubscriptionError?.('No grant for subscription');
 		}
 	}
@@ -293,20 +300,18 @@ export class Ux4iot {
 			...subscriptionRequest,
 			sessionId: this.sessionId,
 		} as SubscriptionRequest;
-		const subscription = ux4iotState.removeSubscription(subscriberId, sr);
 		const grantRequest = getGrantFromSubscriptionRequest(sr);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				if (ux4iotState.getNumberOfSubscribers(sr) === 0) {
+				if (ux4iotState.getNumberOfSubscribers(sr) === 1) {
 					await this.api.unsubscribe(subscriptionRequest);
 				}
+				ux4iotState.removeSubscription(subscriberId, sr);
 			} catch (error) {
-				ux4iotState.addSubscription(subscriberId, sr, subscription.onData);
 				onSubscriptionError?.(error);
 			}
 		} else {
-			ux4iotState.addSubscription(subscriberId, sr, subscription.onData);
 			onSubscriptionError?.('No grant for subscription');
 		}
 	}

@@ -51,7 +51,7 @@ type Ux4iotState = {
 type Ux4iotGrants = {
 	deviceTwin: DeviceTwinGrantRequest[];
 	connectionState: ConnectionStateGrantRequest[];
-	d2cMessage: D2CMessageGrantRequest[];
+	d2cMessages: D2CMessageGrantRequest[];
 	telemetry: TelemetryGrantRequest[];
 	desiredProperties: DesiredPropertyGrantRequest[];
 	directMethod: DirectMethodGrantRequest[];
@@ -62,7 +62,7 @@ export const state: Ux4iotState = {
 	grants: {
 		deviceTwin: [],
 		connectionState: [],
-		d2cMessage: [],
+		d2cMessages: [],
 		telemetry: [],
 		desiredProperties: [],
 		directMethod: [],
@@ -74,7 +74,7 @@ export function resetState() {
 	state.grants = {
 		deviceTwin: [],
 		connectionState: [],
-		d2cMessage: [],
+		d2cMessages: [],
 		telemetry: [],
 		desiredProperties: [],
 		directMethod: [],
@@ -187,7 +187,7 @@ export function addSubscription(
 		case 'deviceTwin':
 		case 'connectionState':
 		case 'd2cMessages': {
-			const subscription = { type, deviceId, onData } as
+			const subscription = { type, deviceId, onData, sessionId } as
 				| DeviceTwinSubscription
 				| ConnectionStateSubscription
 				| D2CMessageSubscription;
@@ -283,12 +283,14 @@ export function removeSubscription(
 export function addGrant(grantRequest: GrantRequest) {
 	const { grants } = state;
 	const { type } = grantRequest;
+	//@ts-ignore type of grant request is correctly map in Ux4iotState
 	grants[type].push(grantRequest);
 }
 
 export function removeGrant(grantRequest: GrantRequest) {
 	const { grants } = state;
 	const { type } = grantRequest;
+	//@ts-ignore type of grant request is correctly map in Ux4iotState
 	grants[type] = grants[type].filter(g => !grantRequestsEqual(g, grantRequest));
 }
 

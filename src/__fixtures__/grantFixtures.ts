@@ -13,7 +13,7 @@ export const mockedTelemetryGrant = (
 	type: 'telemetry',
 	deviceId: 'mockedDeviceId',
 	telemetryKey: 'mockedTelemetryKey',
-	sessionId: sessionId,
+	sessionId,
 });
 export const mockedTelemetryGrant2 = (
 	sessionId: string
@@ -21,14 +21,14 @@ export const mockedTelemetryGrant2 = (
 	type: 'telemetry',
 	deviceId: 'mockedDeviceId2',
 	telemetryKey: 'mockedTelemetryKey2',
-	sessionId: sessionId,
+	sessionId,
 });
 export const mockedDeviceTwinGrant = (
 	sessionId: string
 ): DeviceTwinGrantRequest => ({
 	type: 'deviceTwin',
 	deviceId: 'mockedDeviceId',
-	sessionId: sessionId,
+	sessionId,
 });
 export const mockedDirectMethodGrant = (
 	sessionId: string
@@ -36,26 +36,26 @@ export const mockedDirectMethodGrant = (
 	type: 'directMethod',
 	deviceId: 'mockedDeviceId',
 	directMethodName: 'mockedDirectMethod',
-	sessionId: sessionId,
+	sessionId,
 });
 export const mockedConnectionStateGrant = (
 	sessionId: string
 ): ConnectionStateGrantRequest => ({
 	type: 'connectionState',
 	deviceId: 'mockedDeviceId',
-	sessionId: sessionId,
+	sessionId,
 });
 export const mockedDesiredPropertiesGrant = (
 	sessionId: string
 ): DesiredPropertyGrantRequest => ({
 	type: 'desiredProperties',
 	deviceId: 'mockedDeviceId',
-	sessionId: sessionId,
+	sessionId,
 });
 export const mockedD2CMessagesGrant = (
 	sessionId: string
 ): D2CMessageGrantRequest => ({
 	type: 'd2cMessages',
 	deviceId: 'mockedDeviceId',
-	sessionId: sessionId,
+	sessionId,
 });
