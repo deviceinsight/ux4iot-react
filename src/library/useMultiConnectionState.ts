@@ -67,7 +67,7 @@ export const useMultiConnectionState = (
 
 	const addConnectionState = useCallback(
 		async (deviceId: string) => {
-			ux4iot.subscribe(
+			await ux4iot.subscribe(
 				subscriptionId.current,
 				getSubscriptionRequest(deviceId),
 				onConnectionState,
@@ -83,7 +83,7 @@ export const useMultiConnectionState = (
 
 	const removeConnectionState = useCallback(
 		async (deviceId: string) => {
-			ux4iot.unsubscribe(
+			await ux4iot.unsubscribe(
 				subscriptionId.current,
 				getSubscriptionRequest(deviceId),
 				onSubscriptionErrorRef.current,
@@ -102,8 +102,8 @@ export const useMultiConnectionState = (
 				subscriptionId.current,
 				getSubscriptionRequest(deviceId)
 			)
-				? removeConnectionState(deviceId)
-				: addConnectionState(deviceId);
+				? await removeConnectionState(deviceId)
+				: await addConnectionState(deviceId);
 		},
 		[ux4iot, addConnectionState, removeConnectionState]
 	);
@@ -119,14 +119,19 @@ export const useMultiConnectionState = (
 	);
 
 	useEffect(() => {
-		if (ux4iot && initialSubscribers) {
-			for (const deviceId of initialSubscribers) {
-				addConnectionState(deviceId);
+		async function initSubscribe() {
+			if (ux4iot && initialSubscribers) {
+				for (const deviceId of initialSubscribers) {
+					await addConnectionState(deviceId);
+				}
+				setCurrentSubscribers(
+					Object.keys(
+						ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
+					)
+				);
 			}
-			setCurrentSubscribers(
-				Object.keys(ux4iot.getSubscriberIdSubscriptions(subscriptionId.current))
-			);
 		}
+		initSubscribe();
 		/*
 		 * Intentionally omitting initialSubscribers and onConnectionState to prevent
 		 * updates of dynamically assigned initialSubscribers from happening
@@ -142,7 +147,6 @@ export const useMultiConnectionState = (
 			cleanup();
 		};
 	}, [ux4iot]);
-	console.log(JSON.stringify(connectionStates));
 
 	return {
 		connectionStates,
