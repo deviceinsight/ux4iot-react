@@ -9,7 +9,7 @@ export const TestInvokeDirectMethod: FC<Props> = ({ deviceId }) => {
 	const reboot = useDirectMethod(deviceId, 'setSendInterval');
 	const [error, setError] = useState<string>('');
 	const [loading, setLoading] = useState<boolean>(false);
-	const [delay, setDelay] = useState<number>(1000);
+	const [delay, setDelay] = useState<number>(1);
 	const [rebootResult, setRebootResult] = useState<unknown>();
 
 	const handleClick = useCallback(() => {

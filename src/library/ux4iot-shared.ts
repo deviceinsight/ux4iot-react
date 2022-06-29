@@ -1,5 +1,10 @@
 import { Twin } from 'azure-iothub';
 
+export type TwinUpdate = {
+	version: number;
+	properties: Twin['properties'];
+};
+
 export type DeviceId = string;
 
 // Requests
@@ -8,24 +13,24 @@ type GrantRequestBase<T> = {
 	sessionId: string;
 } & T;
 export type TelemetryGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToTelemetry';
+	type: 'telemetry';
 	telemetryKey?: string | null; // null means: Access to all telemetry keys
 }>;
 export type DeviceTwinGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToDeviceTwin';
+	type: 'deviceTwin';
 }>;
 export type ConnectionStateGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToConnectionState';
+	type: 'connectionState';
 }>;
 export type DesiredPropertyGrantRequest = GrantRequestBase<{
-	grantType: 'modifyDesiredProperties';
+	type: 'desiredProperties';
 }>;
 export type DirectMethodGrantRequest = GrantRequestBase<{
-	grantType: 'invokeDirectMethod';
+	type: 'directMethod';
 	directMethodName: string | null; // null means: Access to all direct methods
 }>;
-export type RawD2CMessageGrantRequest = GrantRequestBase<{
-	grantType: 'subscribeToD2CMessages';
+export type D2CMessageGrantRequest = GrantRequestBase<{
+	type: 'd2cMessages';
 }>;
 
 export type GrantRequest =
@@ -34,7 +39,31 @@ export type GrantRequest =
 	| ConnectionStateGrantRequest
 	| DesiredPropertyGrantRequest
 	| DirectMethodGrantRequest
-	| RawD2CMessageGrantRequest;
+	| D2CMessageGrantRequest;
+
+type SubscriptionRequestBase<T> = {
+	deviceId: string;
+	sessionId: string;
+} & T;
+export type TelemetrySubscriptionRequest = SubscriptionRequestBase<{
+	type: 'telemetry';
+	telemetryKey: string; // null means: Access to all telemetry keys
+}>;
+export type DeviceTwinSubscriptionRequest = SubscriptionRequestBase<{
+	type: 'deviceTwin';
+}>;
+export type ConnectionStateSubscriptionRequest = SubscriptionRequestBase<{
+	type: 'connectionState';
+}>;
+export type D2CMessageSubscriptionRequest = SubscriptionRequestBase<{
+	type: 'd2cMessages';
+}>;
+
+export type SubscriptionRequest =
+	| TelemetrySubscriptionRequest // null means: Access to all telemetry keysS
+	| DeviceTwinSubscriptionRequest
+	| ConnectionStateSubscriptionRequest
+	| D2CMessageSubscriptionRequest;
 
 export type ConnectionState = {
 	connected: boolean;
@@ -42,7 +71,7 @@ export type ConnectionState = {
 
 export type MessageBase<T> = {
 	deviceId: DeviceId;
-	timestamp: string | undefined;
+	timestamp: string;
 } & T;
 
 export type TelemetryMessage = MessageBase<{
@@ -50,14 +79,14 @@ export type TelemetryMessage = MessageBase<{
 }>;
 
 export type ConnectionStateMessage = MessageBase<{
-	connectionState: ConnectionState;
+	connectionState: boolean;
 }>;
 
 export type DeviceTwinMessage = MessageBase<{
-	deviceTwin: Twin;
+	deviceTwin: TwinUpdate;
 }>;
 
-export type RawD2CMessage = MessageBase<{
+export type D2CMessage = MessageBase<{
 	message: Record<string, unknown>;
 }>;
 
@@ -65,7 +94,7 @@ export type Message =
 	| TelemetryMessage
 	| ConnectionStateMessage
 	| DeviceTwinMessage
-	| RawD2CMessage;
+	| D2CMessage;
 
 export type IoTHubResponse = {
 	status: number;

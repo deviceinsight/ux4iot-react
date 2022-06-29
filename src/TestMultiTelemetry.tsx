@@ -1,31 +1,24 @@
 import { FC, useState } from 'react';
 import { useMultiTelemetry } from './library';
-import { useConnectionState } from './library/useConnectionState';
-import { useDeviceTwin } from './library/useDeviceTwin';
 
 type Props = {
 	deviceId: string;
 	datapoints: string[];
 };
 
-export const TestSubscriber: FC<Props> = ({ deviceId }) => {
+export const TestMultiTelemetry: FC<Props> = ({ deviceId }) => {
 	const [ts, setTs] = useState<string | undefined>('');
+	const [grantError, setGrantError] = useState<string>('');
+	const [subError, setSubError] = useState<string>('');
 	const { telemetry, toggleTelemetry, isSubscribed } = useMultiTelemetry({
 		initialSubscribers: { [deviceId]: ['temperature', 'pressure'] },
 		onData: (deviceId, message, timestamp) => {
 			setTs(timestamp);
 			console.log('useMultiTelemetry', deviceId, message, timestamp);
 		},
-		onGrantError: error => console.log(error),
+		onGrantError: error => setGrantError(error),
+		onSubscriptionError: error => setSubError(error),
 	});
-	const [myState, setMyState] = useState<number>(0);
-	const twin = useDeviceTwin(deviceId, {
-		onData: twin => {
-			setMyState(myState + 1);
-		},
-		onGrantError: error => console.log(error),
-	});
-	const connectionState = useConnectionState(deviceId);
 
 	return (
 		<div style={{ display: 'flex' }}>
@@ -60,18 +53,8 @@ export const TestSubscriber: FC<Props> = ({ deviceId }) => {
 				<div>
 					Received at <pre>{ts}</pre>
 				</div>
-			</div>
-			<div style={{ width: '33.3%' }}>
-				<h3>UseDeviceTwin</h3>
-				<div style={{ padding: 50 }}>
-					data: <pre>{JSON.stringify(twin, null, 2)}</pre>
-				</div>
-			</div>
-			<div style={{ width: '33.3%' }}>
-				<h3>UseConnectionState</h3>
-				<div style={{ padding: 50 }}>
-					data: <pre>{JSON.stringify(connectionState, null, 2)}</pre>
-				</div>
+				<div>grant error: {grantError.toString()}</div>
+				<div>sub error: {subError.toString()}</div>
 			</div>
 		</div>
 	);

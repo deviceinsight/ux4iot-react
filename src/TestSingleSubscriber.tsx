@@ -11,14 +11,16 @@ export const TestSingleSubscriber: FC<Props> = ({
 }) => {
 	const [ts, setTs] = useState<string | undefined>('');
 	const value = useTelemetry(deviceId, datapointName, {
-		onData: (data, timestamp) => {
+		onData: (deviceId, data, timestamp) => {
 			setTs(timestamp);
 			console.log(
-				`received telemetry from useTelemetry ${data} at ${timestamp}`
+				`received telemetry from useTelemetry from ${deviceId}: ${data} at ${timestamp}`
 			);
 		},
 		onGrantError: error => console.log(error),
 	});
+
+	console.log('rendered single subscriber');
 
 	return (
 		<div>

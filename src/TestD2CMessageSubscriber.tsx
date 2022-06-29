@@ -5,7 +5,7 @@ type Props = {
 	deviceId: string;
 };
 
-export const TestRawD2CMessageSubscriber: FC<Props> = ({ deviceId }) => {
+export const TestD2CMessageSubscriber: FC<Props> = ({ deviceId }) => {
 	const [ts, setTs] = useState<string | undefined>('');
 	const lastMessage = useD2CMessages(deviceId, {
 		onData: (message, timestamp) => {

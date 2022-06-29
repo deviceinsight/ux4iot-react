@@ -3,8 +3,10 @@ import { Ux4iotContextProvider } from './library/Ux4iotContext';
 import { TestInvokeDirectMethod } from './TestInvokeDirectMethod';
 import { TestPatchDesiredProperties } from './TestPatchDesiredProperties';
 import { TestSingleSubscriber } from './TestSingleSubscriber';
-import { TestRawD2CMessageSubscriber } from './TestRawD2CMessageSubscriber';
 import { TestSubscriber } from './TestSubscriber';
+import { TestMultiTelemetry } from './TestMultiTelemetry';
+import { TestMultiConnectionState } from './TestMultiConnectionState';
+import { TestD2CMessageSubscriber } from './TestD2CMessageSubscriber';
 
 const { VITE_UX4IOT_CONNECTION_STRING } = import.meta.env;
 
@@ -24,12 +26,13 @@ function App(): JSX.Element | null {
 	const [reload, setReload] = useState(0);
 	const [showApp, setShowApp] = useState(false);
 	const [showApp2, setShowApp2] = useState(false);
+	const [showApp3, setShowApp3] = useState(false);
 	const [showTemperature, setShowTemperature] = useState(false);
 	const [showGeoposition, setShowGeoposition] = useState(false);
 	const [showNestedObject, setShowNestedObject] = useState(false);
 	const [showApp4, setShowApp4] = useState(false);
 	const [kill, setKill] = useState(false);
-	const [renders, setRenders] = useState(20);
+	const [renders, setRenders] = useState(0);
 	const rerender = useRerender(renders);
 	if (!VITE_UX4IOT_CONNECTION_STRING) {
 		console.error('VITE_UX4IOT_CONNECTION_STRING is missing.');
@@ -69,14 +72,25 @@ function App(): JSX.Element | null {
 						)}
 					</div>
 					<div>
-						<label>Show App ?</label>
+						<label>Show MultiTelemetry ?</label>
 						<input
 							type="checkbox"
 							checked={showApp2}
 							onChange={() => setShowApp2(!showApp2)}
 						/>
 						{showApp2 && (
-							<TestSubscriber datapoints={[]} deviceId="simulated-device" />
+							<TestMultiTelemetry datapoints={[]} deviceId="simulated-device" />
+						)}
+					</div>
+					<div>
+						<label>Show MultiConnectionState ?</label>
+						<input
+							type="checkbox"
+							checked={showApp3}
+							onChange={() => setShowApp3(!showApp3)}
+						/>
+						{showApp3 && (
+							<TestMultiConnectionState deviceIds={['simulated-device']} />
 						)}
 					</div>
 					<div>
@@ -122,14 +136,14 @@ function App(): JSX.Element | null {
 						)}
 					</div>
 					<div>
-						<label>Show Raw Message Subscriber</label>
+						<label>Show D2C Message Subscriber</label>
 						<input
 							type="checkbox"
 							checked={showApp4}
 							onChange={() => setShowApp4(!showApp4)}
 						/>
 						{showApp4 && (
-							<TestRawD2CMessageSubscriber deviceId="simulated-device" />
+							<TestD2CMessageSubscriber deviceId="simulated-device" />
 						)}
 					</div>
 					<div>

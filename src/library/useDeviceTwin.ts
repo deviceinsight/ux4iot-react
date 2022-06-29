@@ -1,59 +1,46 @@
-import { Twin } from 'azure-iothub';
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { DeviceTwinCallback, GrantErrorCallback } from './types';
-import { Ux4iotContext } from './Ux4iotContext';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+	DeviceTwinCallback,
+	GrantErrorCallback,
+	SubscriptionErrorCallback,
+} from './types';
+import { useSubscription } from './useSubscription';
+import { DeviceTwinSubscriptionRequest, TwinUpdate } from './ux4iot-shared';
 
 type HookOptions = {
-	onData?: (twin: Twin) => void;
+	onData?: DeviceTwinCallback; // BREAKING
 	onGrantError?: GrantErrorCallback;
+	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
 export const useDeviceTwin = (
 	deviceId: string,
 	options: HookOptions = {}
-): Twin | undefined => {
-	const { onData, onGrantError } = options;
-	const ux4iot = useContext(Ux4iotContext);
-	const [twin, setTwin] = useState<Twin>();
-	const subscriberIdRef = useRef(uuidv4());
+): TwinUpdate | undefined => {
+	const { onData } = options;
 	const onDataRef = useRef(onData);
-	const onGrantErrorRef = useRef(onGrantError);
+	const [twin, setTwin] = useState<TwinUpdate>(); // BREAKING
 
 	useEffect(() => {
 		onDataRef.current = onData;
-		onGrantErrorRef.current = onGrantError;
-	}, [onData, onGrantError]);
+	}, [onData]);
 
 	const onDeviceTwin: DeviceTwinCallback = useCallback(
-		(deviceId, deviceTwin) => {
+		(deviceId, deviceTwin, timestamp) => {
 			setTwin(deviceTwin);
-			onDataRef.current && onDataRef.current(deviceTwin);
+			onDataRef.current?.(deviceId, deviceTwin, timestamp);
 		},
 		[setTwin]
 	);
 
-	useEffect(() => {
-		const id = subscriberIdRef.current;
-		ux4iot?.registerDeviceTwinSubscriber(
-			id,
-			deviceId,
-			onDeviceTwin,
-			onGrantErrorRef.current
-		);
+	const subscriptionRequest = useCallback((): Omit<
+		DeviceTwinSubscriptionRequest,
+		'sessionId'
+	> => {
+		return { deviceId, type: 'deviceTwin' };
+	}, [deviceId]);
 
-		return () => {
-			ux4iot?.unregisterDeviceTwinSubscriber(id, deviceId);
-		};
-	}, [deviceId, onDeviceTwin, ux4iot]);
-
-	useEffect(() => {
-		const ux4iotInstance = ux4iot;
-		const id = subscriberIdRef.current;
-		return () => {
-			ux4iotInstance?.cleanupSubscriberId(id);
-		};
-	}, [ux4iot]);
+	useSubscription(options, onDeviceTwin, subscriptionRequest);
 
 	return twin;
 };
