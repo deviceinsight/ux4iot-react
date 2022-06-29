@@ -11,7 +11,7 @@ import {
 	TelemetryAction,
 	telemetryReducer,
 	TelemetryState,
-} from './state/telemetryState';
+} from './telemetryState';
 import { useUx4iot } from './Ux4iotContext';
 import {
 	Subscribers,
