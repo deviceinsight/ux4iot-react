@@ -32,7 +32,7 @@ type UseMultiTelemetryOutput = {
 
 type HookOptions = {
 	initialSubscribers?: Subscribers;
-	onData?: TelemetryCallback;
+	onData?: TelemetryCallback; // BREAKING
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
@@ -70,7 +70,7 @@ export const useMultiTelemetry = (
 	const onTelemetry: TelemetryCallback = useCallback(
 		(deviceId, message, timestamp) => {
 			setTelemetry({ type: 'ADD_DATA', deviceId, message, timestamp });
-			onDataRef.current && onDataRef.current(deviceId, message, timestamp);
+			onDataRef.current?.(deviceId, message, timestamp);
 		},
 		[setTelemetry]
 	);

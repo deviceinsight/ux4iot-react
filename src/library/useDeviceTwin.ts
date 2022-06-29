@@ -8,18 +8,18 @@ import { useSubscription } from './useSubscription';
 import { DeviceTwinSubscriptionRequest, TwinUpdate } from './ux4iot-shared';
 
 type HookOptions = {
-	onData?: DeviceTwinCallback;
+	onData?: DeviceTwinCallback; // BREAKING
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
 export const useDeviceTwin = (
-	deviceId: string, // breaking Twin -> TwinUpdate
+	deviceId: string,
 	options: HookOptions = {}
 ): TwinUpdate | undefined => {
 	const { onData } = options;
 	const onDataRef = useRef(onData);
-	const [twin, setTwin] = useState<TwinUpdate>(); // breaking Twin -> TwinUpdate
+	const [twin, setTwin] = useState<TwinUpdate>(); // BREAKING
 
 	useEffect(() => {
 		onDataRef.current = onData;

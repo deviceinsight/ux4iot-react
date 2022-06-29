@@ -8,7 +8,7 @@ import { useSubscription } from './useSubscription';
 import { D2CMessageSubscriptionRequest } from './ux4iot-shared';
 
 type HookOptions = {
-	onData?: D2CMessageCallback;
+	onData?: D2CMessageCallback; // BREAKING
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
