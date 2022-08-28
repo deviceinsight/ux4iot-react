@@ -42,13 +42,6 @@ export class Ux4iotApi {
 		}
 	}
 
-	private async _requestUx4iot<T>(cb: () => Promise<T>): Promise<T> {
-		if (!this.sessionId) {
-			return Promise.reject('Ux4iot has no session');
-		}
-		return await cb();
-	}
-
 	private async defaultGrantRequestFunction(grant: GrantRequest) {
 		try {
 			await this.axiosInstance.put('/grants', grant);
@@ -81,98 +74,100 @@ export class Ux4iotApi {
 		return `${this.ux4iotUrl}?sessionId=${sessionId}`;
 	}
 
-	public async requestGrant(grantBase: Omit<GrantRequest, 'sessionId'>) {
-		return this._requestUx4iot(() => {
-			const grant = { ...grantBase, sessionId: this.sessionId } as GrantRequest;
-			return this.grantRequestFunction(grant);
-		});
+	public async requestGrant(
+		grantBase: Omit<GrantRequest, 'sessionId'>
+	): Promise<GRANT_RESPONSES> {
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
+
+		const grant = { ...grantBase, sessionId: this.sessionId } as GrantRequest;
+		return this.grantRequestFunction(grant);
 	}
 
 	public async subscribe(
 		subscriptionRequestBase: Omit<SubscriptionRequest, 'sessionId'>
-	) {
-		return this._requestUx4iot(() =>
-			this.axiosInstance.put('/subscription', {
-				...subscriptionRequestBase,
-				sessionId: this.sessionId,
-			})
-		);
+	): Promise<void> {
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
+
+		this.axiosInstance.put('/subscription', {
+			...subscriptionRequestBase,
+			sessionId: this.sessionId,
+		});
 	}
 
 	public async unsubscribe(
 		subscriptionRequestBase: Omit<SubscriptionRequest, 'sessionId'>
-	) {
-		return this._requestUx4iot(() =>
-			this.axiosInstance.delete('/subscription', {
-				data: { ...subscriptionRequestBase, sessionId: this.sessionId },
-			})
-		);
+	): Promise<void> {
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
+
+		this.axiosInstance.delete('/subscription', {
+			data: { ...subscriptionRequestBase, sessionId: this.sessionId },
+		});
 	}
 
 	public async getLastTelemetryValues(
 		deviceId: string,
 		telemetryKey: string
 	): Promise<{ deviceId: string; data: any; timestamp: string }> {
-		return this._requestUx4iot(async () => {
-			const response = await this.axiosInstance.get(
-				`/lastValue/${deviceId}/${telemetryKey}`,
-				{ headers: { sessionId: this.sessionId } }
-			);
-			return response.data;
-		});
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
+
+		const response = await this.axiosInstance.get(
+			`/lastValue/${deviceId}/${telemetryKey}`,
+			{ headers: { sessionId: this.sessionId } }
+		);
+		return response.data;
 	}
 
 	public async getLastDeviceTwin(
 		deviceId: string
 	): Promise<{ deviceId: string; data: any; timestamp: string }> {
-		return this._requestUx4iot(async () => {
-			const response = await this.axiosInstance.get(`/deviceTwin/${deviceId}`, {
-				headers: { sessionId: this.sessionId },
-			});
-			return response.data;
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
+
+		const response = await this.axiosInstance.get(`/deviceTwin/${deviceId}`, {
+			headers: { sessionId: this.sessionId },
 		});
+		return response.data;
 	}
 
 	public async getLastConnectionState(
 		deviceId: string
 	): Promise<{ deviceId: string; data: any; timestamp: string }> {
-		return this._requestUx4iot(async () => {
-			const response = await this.axiosInstance.get(
-				`/connectionState/${deviceId}`,
-				{ headers: { sessionId: this.sessionId } }
-			);
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
 
-			return response.data;
-		});
+		const response = await this.axiosInstance.get(
+			`/connectionState/${deviceId}`,
+			{ headers: { sessionId: this.sessionId } }
+		);
+
+		return response.data;
 	}
 
 	public async invokeDirectMethod(
 		deviceId: string,
 		options: DeviceMethodParams
 	): Promise<IoTHubResponse | void> {
-		return this._requestUx4iot(async () => {
-			const response = await this.axiosInstance.post(
-				'/directMethod',
-				{ deviceId, methodParams: options },
-				{ headers: { sessionId: this.sessionId } }
-			);
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
 
-			return response.data;
-		});
+		const response = await this.axiosInstance.post(
+			'/directMethod',
+			{ deviceId, methodParams: options },
+			{ headers: { sessionId: this.sessionId } }
+		);
+
+		return response.data;
 	}
 
 	public async patchDesiredProperties(
 		deviceId: string,
 		desiredPropertyPatch: Record<string, unknown>
 	): Promise<IoTHubResponse | void> {
-		return this._requestUx4iot(async () => {
-			const response = await this.axiosInstance.patch<IoTHubResponse | void>(
-				'/deviceTwinDesiredProperties',
-				{ deviceId, desiredPropertyPatch },
-				{ headers: { sessionId: this.sessionId } }
-			);
+		if (!this.sessionId) return Promise.reject('Ux4iot has no sessionId');
 
-			return response.data;
-		});
+		const response = await this.axiosInstance.patch<IoTHubResponse | void>(
+			'/deviceTwinDesiredProperties',
+			{ deviceId, desiredPropertyPatch },
+			{ headers: { sessionId: this.sessionId } }
+		);
+
+		return response.data;
 	}
 }

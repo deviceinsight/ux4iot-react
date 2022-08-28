@@ -217,11 +217,11 @@ export class Ux4iot {
 		if (ux4iotState.hasGrant(grantRequest)) {
 			return;
 		}
-		try {
-			await this.api.requestGrant(grantRequest);
+		const grantResponse = await this.api.requestGrant(grantRequest);
+		if (grantResponse === GRANT_RESPONSES.GRANTED) {
 			ux4iotState.addGrant(grantRequest);
-		} catch (error) {
-			onGrantError?.(error as GRANT_RESPONSES);
+		} else {
+			onGrantError?.(grantResponse);
 		}
 	}
 
@@ -241,12 +241,7 @@ export class Ux4iot {
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
 				const response = await this.getLastValueForSubscriptionRequest(sr);
-				response &&
-					onData(response.deviceId, response.data, response.timestamp);
-			} catch (error) {
-				console.log(error);
-			}
-			try {
+				onData(response.deviceId, response.data, response.timestamp);
 				// this if block is used as an optimization.
 				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
 				// If the request fails, then we do not need to remove the subscription, since it will only be added after
@@ -257,7 +252,7 @@ export class Ux4iot {
 				}
 				ux4iotState.addSubscription(subscriberId, sr, onData);
 			} catch (error) {
-				onSubscriptionError?.(error);
+				onSubscriptionError?.(error.response?.data);
 			}
 		} else {
 			onSubscriptionError?.('No grant for subscription');
@@ -340,30 +335,22 @@ export class Ux4iot {
 	}
 
 	async getLastValueForSubscriptionRequest(
-		subscriptionRequest: SubscriptionRequest,
-		onGrantError?: GrantErrorCallback,
-		onSubscriptionError?: SubscriptionErrorCallback
-	): Promise<{ deviceId: string; data: any; timestamp: string } | undefined> {
+		subscriptionRequest: SubscriptionRequest
+	): Promise<{ deviceId: string; data: any; timestamp: string }> {
 		const { type, deviceId } = subscriptionRequest;
-		const grantRequest = getGrantFromSubscriptionRequest(subscriptionRequest);
-		await this.grant(grantRequest, onGrantError);
-		try {
-			switch (type) {
-				case 'connectionState':
-					return await this.api.getLastConnectionState(deviceId);
-				case 'deviceTwin':
-					return await this.api.getLastDeviceTwin(deviceId);
-				case 'telemetry': {
-					const { telemetryKey } = subscriptionRequest;
-					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
-				}
-				case 'd2cMessages':
-					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
-				default:
-					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
+		switch (type) {
+			case 'connectionState':
+				return await this.api.getLastConnectionState(deviceId);
+			case 'deviceTwin':
+				return await this.api.getLastDeviceTwin(deviceId);
+			case 'telemetry': {
+				const { telemetryKey } = subscriptionRequest;
+				return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
 			}
-		} catch (error) {
-			onSubscriptionError?.(error);
+			case 'd2cMessages':
+				return Promise.resolve({ deviceId, data: {}, timestamp: '' });
+			default:
+				return Promise.resolve({ deviceId, data: {}, timestamp: '' });
 		}
 	}
 }
