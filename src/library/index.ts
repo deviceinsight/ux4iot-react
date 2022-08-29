@@ -3,6 +3,7 @@ export * from './types';
 export * from './base/Ux4iot';
 export * from './Ux4iotContext';
 export * from './useMultiTelemetry';
+export * from './useMultiConnectionState';
 export * from './useTelemetry';
 export * from './useDeviceTwin';
 export * from './useConnectionState';
