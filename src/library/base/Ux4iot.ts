@@ -239,9 +239,9 @@ export class Ux4iot {
 		const grantRequest = getGrantFromSubscriptionRequest(sr);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
+			const response = await this.getLastValueForSubscriptionRequest(sr);
+			onData(response.deviceId, response.data, response.timestamp);
 			try {
-				const response = await this.getLastValueForSubscriptionRequest(sr);
-				onData(response.deviceId, response.data, response.timestamp);
 				// this if block is used as an optimization.
 				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
 				// If the request fails, then we do not need to remove the subscription, since it will only be added after
@@ -338,19 +338,24 @@ export class Ux4iot {
 		subscriptionRequest: SubscriptionRequest
 	): Promise<{ deviceId: string; data: any; timestamp: string }> {
 		const { type, deviceId } = subscriptionRequest;
-		switch (type) {
-			case 'connectionState':
-				return await this.api.getLastConnectionState(deviceId);
-			case 'deviceTwin':
-				return await this.api.getLastDeviceTwin(deviceId);
-			case 'telemetry': {
-				const { telemetryKey } = subscriptionRequest;
-				return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
+		try {
+			switch (type) {
+				case 'connectionState':
+					return await this.api.getLastConnectionState(deviceId);
+				case 'deviceTwin':
+					return await this.api.getLastDeviceTwin(deviceId);
+				case 'telemetry': {
+					const { telemetryKey } = subscriptionRequest;
+					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
+				}
+				case 'd2cMessages':
+					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
+				default:
+					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
 			}
-			case 'd2cMessages':
-				return Promise.resolve({ deviceId, data: {}, timestamp: '' });
-			default:
-				return Promise.resolve({ deviceId, data: {}, timestamp: '' });
+		} catch (error) {
+			this.log(error.response?.data);
+			return Promise.resolve({ deviceId, data: undefined, timestamp: '' });
 		}
 	}
 }

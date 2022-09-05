@@ -47,7 +47,7 @@ export function isProdOptions(
 
 export type MessageCallbackBase<T> = (
 	deviceId: string,
-	data: T,
+	data: T | undefined,
 	timestamp: string
 ) => void;
 
