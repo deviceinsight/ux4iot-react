@@ -69,8 +69,10 @@ export const useMultiTelemetry = (
 
 	const onTelemetry: TelemetryCallback = useCallback(
 		(deviceId, message, timestamp) => {
-			setTelemetry({ type: 'ADD_DATA', deviceId, message, timestamp });
-			onDataRef.current?.(deviceId, message, timestamp);
+			if (message) {
+				setTelemetry({ type: 'ADD_DATA', deviceId, message, timestamp });
+				onDataRef.current?.(deviceId, message, timestamp);
+			}
 		},
 		[setTelemetry]
 	);

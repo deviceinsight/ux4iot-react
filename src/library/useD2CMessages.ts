@@ -26,9 +26,11 @@ export const useD2CMessages = <T extends Record<string, unknown>>(
 	}, [onData]);
 
 	const onMessage: D2CMessageCallback = useCallback(
-		(deviceId: string, message: T, timestamp: string | undefined) => {
-			setLastMessage(message);
-			onDataRef.current?.(deviceId, message, timestamp);
+		(deviceId, message, timestamp) => {
+			if (message) {
+				setLastMessage(message as T);
+				onDataRef.current?.(deviceId, message, timestamp);
+			}
 		},
 		[setLastMessage]
 	);

@@ -27,13 +27,9 @@ export const useTelemetry = <T = any>(
 	}, [options.onData]);
 
 	const onTelemetry: TelemetryCallback = useCallback(
-		(
-			deviceId: string,
-			message: Record<string, unknown>,
-			timestamp: string | undefined
-		) => {
-			const maybeValue = message[telemetryKey];
-			if (maybeValue !== undefined) {
+		(deviceId, message, timestamp) => {
+			const maybeValue = message?.[telemetryKey];
+			if (maybeValue) {
 				setValue(maybeValue as T);
 				onDataRef.current?.(deviceId, maybeValue as T, timestamp);
 			}

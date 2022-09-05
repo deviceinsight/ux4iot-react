@@ -56,11 +56,13 @@ export const useMultiConnectionState = (
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
 		(deviceId, connectionState, timestamp) => {
-			setConnectionStates(prevState => ({
-				...prevState,
-				[deviceId]: connectionState,
-			}));
-			onDataRef.current?.(deviceId, connectionState, timestamp);
+			if (connectionState) {
+				setConnectionStates(prevState => ({
+					...prevState,
+					[deviceId]: connectionState,
+				}));
+				onDataRef.current?.(deviceId, connectionState, timestamp);
+			}
 		},
 		[]
 	);

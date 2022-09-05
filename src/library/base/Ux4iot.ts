@@ -29,13 +29,14 @@ import {
 } from './utils';
 import { DeviceMethodParams } from 'azure-iothub';
 import { NETWORK_STATES, RECONNECT_TIMEOUT } from './constants';
+import { AxiosError } from 'axios';
 
 export class Ux4iot {
 	sessionId = '';
 	socket: Socket | undefined;
 	devMode: boolean;
 	api: Ux4iotApi;
-	retryTimeoutAfterError: NodeJS.Timeout;
+	retryTimeoutAfterError?: NodeJS.Timeout;
 	onSocketConnectionUpdate?: ConnectionUpdateFunction;
 	onSessionId?: (sessionId: string) => void;
 
@@ -252,7 +253,7 @@ export class Ux4iot {
 				}
 				ux4iotState.addSubscription(subscriberId, sr, onData);
 			} catch (error) {
-				onSubscriptionError?.(error.response?.data);
+				onSubscriptionError?.((error as AxiosError).response?.data);
 			}
 		} else {
 			onSubscriptionError?.('No grant for subscription');
@@ -349,12 +350,12 @@ export class Ux4iot {
 					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
 				}
 				case 'd2cMessages':
-					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
+					return Promise.resolve({ deviceId, data: undefined, timestamp: '' });
 				default:
-					return Promise.resolve({ deviceId, data: {}, timestamp: '' });
+					return Promise.resolve({ deviceId, data: undefined, timestamp: '' });
 			}
 		} catch (error) {
-			this.log(error.response?.data);
+			this.log((error as AxiosError).response?.data);
 			return Promise.resolve({ deviceId, data: undefined, timestamp: '' });
 		}
 	}

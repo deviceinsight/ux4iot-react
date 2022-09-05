@@ -26,9 +26,11 @@ export const useConnectionState = (
 	}, [onData]);
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
-		(deviceId, state, timestamp) => {
-			setConnectionState(state);
-			onDataRef.current?.(deviceId, state, timestamp);
+		(deviceId, connectionState, timestamp) => {
+			if (connectionState) {
+				setConnectionState(connectionState);
+				onDataRef.current?.(deviceId, connectionState, timestamp);
+			}
 		},
 		[setConnectionState]
 	);

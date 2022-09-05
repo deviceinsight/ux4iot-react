@@ -17,7 +17,7 @@ type Ux4iotProviderProps = {
 
 type Ux4iotContextProps = { ux4iot: Ux4iot | undefined; sessionId: string };
 
-let ux4iotInstance: Ux4iot;
+let ux4iotInstance: Ux4iot | undefined;
 
 export const Ux4iotContext = createContext<Ux4iotContextProps>({
 	ux4iot: undefined,
