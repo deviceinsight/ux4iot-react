@@ -4,8 +4,8 @@ import {
 	GrantErrorCallback,
 	MessageCallback,
 	SubscriptionErrorCallback,
-} from './types';
-import { SubscriptionRequest } from './ux4iot-shared';
+} from './base/types';
+import { SubscriptionRequest } from './base/ux4iot-shared';
 import { useUx4iot } from './Ux4iotContext';
 
 export type HookOptions = {

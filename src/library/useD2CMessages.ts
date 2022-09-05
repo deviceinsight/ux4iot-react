@@ -3,9 +3,9 @@ import {
 	D2CMessageCallback,
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
-} from './types';
+} from './base/types';
 import { useSubscription } from './useSubscription';
-import { D2CMessageSubscriptionRequest } from './ux4iot-shared';
+import { D2CMessageSubscriptionRequest } from './base/ux4iot-shared';
 
 type HookOptions = {
 	onData?: D2CMessageCallback; // BREAKING

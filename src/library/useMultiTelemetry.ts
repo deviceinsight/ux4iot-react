@@ -18,8 +18,8 @@ import {
 	TelemetryCallback,
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
-} from './types';
-import { TelemetrySubscriptionRequest } from './ux4iot-shared';
+} from './base/types';
+import { TelemetrySubscriptionRequest } from './base/ux4iot-shared';
 
 type UseMultiTelemetryOutput = {
 	addTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;

@@ -3,9 +3,9 @@ import {
 	ConnectionStateCallback,
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
-} from './types';
+} from './base/types';
 import { useSubscription } from './useSubscription';
-import { ConnectionStateSubscriptionRequest } from './ux4iot-shared';
+import { ConnectionStateSubscriptionRequest } from './base/ux4iot-shared';
 
 type HookOptions = {
 	onData?: ConnectionStateCallback; // BREAKING
@@ -27,7 +27,7 @@ export const useConnectionState = (
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
 		(deviceId, connectionState, timestamp) => {
-			if (connectionState) {
+			if (connectionState !== undefined) {
 				setConnectionState(connectionState);
 				onDataRef.current?.(deviceId, connectionState, timestamp);
 			}

@@ -1,4 +1,4 @@
-import { ConnectionUpdateReason } from '../types';
+import { ConnectionUpdateReason } from './types';
 
 export const RECONNECT_TIMEOUT = 5000;
 export const TIMEOUT_SECONDS = RECONNECT_TIMEOUT / 1000;

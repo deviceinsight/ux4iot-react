@@ -5,8 +5,8 @@ import {
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
 	ConnectionStateCallback,
-} from './types';
-import { ConnectionStateSubscriptionRequest } from './ux4iot-shared';
+} from './base/types';
+import { ConnectionStateSubscriptionRequest } from './base/ux4iot-shared';
 
 type UseMultiConnectionStateOutput = {
 	addConnectionState: (deviceId: string) => Promise<void>;

@@ -4,7 +4,7 @@ import {
 	DeviceTwinCallback,
 	MessageCallback,
 	TelemetryCallback,
-} from '../types';
+} from './types';
 import {
 	ConnectionStateGrantRequest,
 	ConnectionStateSubscriptionRequest,
@@ -18,7 +18,7 @@ import {
 	SubscriptionRequest,
 	TelemetryGrantRequest,
 	TelemetrySubscriptionRequest,
-} from '../ux4iot-shared';
+} from './ux4iot-shared';
 import { grantRequestsEqual } from './utils';
 
 type Subscription =

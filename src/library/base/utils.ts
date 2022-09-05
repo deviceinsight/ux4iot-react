@@ -6,7 +6,7 @@ import {
 	GrantRequest,
 	SubscriptionRequest,
 	TelemetryGrantRequest,
-} from '../ux4iot-shared';
+} from './ux4iot-shared';
 
 const DELIMITER = '___';
 

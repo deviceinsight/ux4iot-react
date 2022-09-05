@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { useUx4iot } from './Ux4iotContext';
-import { GrantErrorCallback } from './types';
-import { DesiredPropertyGrantRequest, IoTHubResponse } from './ux4iot-shared';
+import { GrantErrorCallback } from './base/types';
+import {
+	DesiredPropertyGrantRequest,
+	IoTHubResponse,
+} from './base/ux4iot-shared';
 
 type UsePatchDesiredPropertiesOutput = (
 	desiredProperties: Record<string, unknown>

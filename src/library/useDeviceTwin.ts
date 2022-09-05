@@ -3,9 +3,12 @@ import {
 	DeviceTwinCallback,
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
-} from './types';
+} from './base/types';
 import { useSubscription } from './useSubscription';
-import { DeviceTwinSubscriptionRequest, TwinUpdate } from './ux4iot-shared';
+import {
+	DeviceTwinSubscriptionRequest,
+	TwinUpdate,
+} from './base/ux4iot-shared';
 
 type HookOptions = {
 	onData?: DeviceTwinCallback; // BREAKING

@@ -5,14 +5,14 @@ import {
 	GRANT_RESPONSES,
 	InitializationOptions,
 	isDevOptions,
-} from '../types';
+} from './types';
 import { printDevModeWarning } from './utils';
 import {
 	GrantRequest,
 	IoTHubResponse,
 	parseConnectionString,
 	SubscriptionRequest,
-} from '../ux4iot-shared';
+} from './ux4iot-shared';
 
 export class Ux4iotApi {
 	private axiosInstance: AxiosInstance;

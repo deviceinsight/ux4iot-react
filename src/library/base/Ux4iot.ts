@@ -7,7 +7,7 @@ import {
 	SubscriptionErrorCallback,
 	GrantErrorCallback,
 	GRANT_RESPONSES,
-} from '../types';
+} from './types';
 
 import {
 	DesiredPropertyGrantRequest,
@@ -16,7 +16,7 @@ import {
 	IoTHubResponse,
 	Message,
 	SubscriptionRequest,
-} from '../ux4iot-shared';
+} from './ux4iot-shared';
 
 import { Ux4iotApi } from './Ux4iotApi';
 import * as ux4iotState from './ux4iotState';

@@ -1,5 +1,5 @@
-export * from './ux4iot-shared';
-export * from './types';
+export * from './base/ux4iot-shared';
+export * from './base/types';
 export * from './base/Ux4iot';
 export * from './Ux4iotContext';
 export * from './useMultiTelemetry';

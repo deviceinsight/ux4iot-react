@@ -7,7 +7,7 @@ import {
 	useRef,
 	useState,
 } from 'react';
-import { InitializationOptions } from './types';
+import { InitializationOptions } from './base/types';
 import { Ux4iot } from './base/Ux4iot';
 
 type Ux4iotProviderProps = {
