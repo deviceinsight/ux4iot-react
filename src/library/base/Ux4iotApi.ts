@@ -21,8 +21,8 @@ export class Ux4iotApi {
 	private sessionId?: string;
 
 	constructor(initializationOptions: InitializationOptions) {
-		printDevModeWarning();
 		if (isDevOptions(initializationOptions)) {
+			printDevModeWarning();
 			const { Endpoint, SharedAccessKey } = parseConnectionString(
 				initializationOptions.adminConnectionString
 			);
