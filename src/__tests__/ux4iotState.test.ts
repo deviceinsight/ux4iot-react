@@ -188,9 +188,6 @@ describe('ux4iotState', () => {
 		});
 	});
 
-	// Expected: '{"sub1":[{"deviceId":"mockedDeviceId","telemetryKeys":["mockedTelemetryKey","mockedTelemetryKey2"],"type":"telemetry"},{"deviceId":"mockedDeviceId2","telemetryKeys":["mockedTelemetryKey2"],"type":"telemetry"}],"sub2":[{"deviceId":"mockedDeviceId","type":"deviceTwin"}],"sub3":[{"deviceId":"mockedDeviceId","type":"d2cMessages"}],"sub4":[{"deviceId":"mockedDeviceId","type":"connectionState"}]}';
-	// Received: '{"sub1":[{"type":"telemetry","deviceId":"mockedDeviceId","telemetryKeys":["mockedTelemetryKey","mockedTelemetryKey2"]},{"type":"telemetry","deviceId":"mockedDeviceId2","telemetryKeys":["mockedTelemetryKey2"]}],"sub2":[{"type":"deviceTwin","deviceId":"mockedDeviceId"}],"sub3":[{"type":"d2cMessages","deviceId":"mockedDeviceId"}],"sub4":[{"type":"connectionState","deviceId":"mockedDeviceId"}]}';
-
 	it('adds new telemetry subscriptions correctly', () => {
 		const m = jest.fn();
 		const telemetrySub2 = mockedTelemetrySubscription2(sessionId);
