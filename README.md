@@ -20,6 +20,7 @@ This library provides hooks for:
 - `useMultiTelemetry` - Subscribe to telemetry of multiple devices
 - `useDeviceTwin` - Subscribe to device twin changes
 - `useConnectionState` - Subscribe to connection state updates of a device
+- `useMultiConnectionState` - Subscribe to connection states of multiple devices
 - `useDirectMethod` - Execute a direct method on a device
 - `usePatchDesiredProperties` - Update the desired properties of the device twin
 - `useD2CMessages` - Use the raw messages sent by your devices
@@ -47,6 +48,9 @@ Check out the [Documentation](https://docs.ux4iot.com/using-react/introduction) 
 - ux4iot Admin SDKs
 - ux4iot Admin API
 - Reference to other related libraries of the ux4iot service
+
+## Tests
+- As ux4iot-react does not provide a lot of tests, the main features in this library are tested via integration tests in an internal repository.
 
 ## Releasing
 
