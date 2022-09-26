@@ -87,9 +87,9 @@ export function hasSubscription(
 	subscriptionRequest: SubscriptionRequest
 ): boolean {
 	if (!state.subscriptions[subscriberId]) return false;
-	for (const s of state.subscriptions[subscriberId]) {
+	for (const sub of state.subscriptions[subscriberId]) {
 		const { type, deviceId, sessionId } = subscriptionRequest;
-		const { type: sType, deviceId: sDeviceId, sessionId: sSessionId } = s;
+		const { type: sType, deviceId: sDeviceId, sessionId: sSessionId } = sub;
 		if (sSessionId === sessionId && sDeviceId === deviceId && sType === type) {
 			switch (type) {
 				case 'connectionState':
@@ -97,7 +97,7 @@ export function hasSubscription(
 				case 'deviceTwin':
 					return true;
 				case 'telemetry': {
-					const { telemetryKeys } = s as TelemetrySubscription;
+					const { telemetryKeys } = sub as TelemetrySubscription;
 					return telemetryKeys.includes(subscriptionRequest.telemetryKey);
 				}
 			}
@@ -108,8 +108,8 @@ export function hasSubscription(
 
 export function hasGrant(grantRequest: GrantRequest) {
 	for (const grants of Object.values(state.grants))
-		for (const g of grants)
-			if (grantRequestsEqual(grantRequest, g)) return true;
+		for (const grant of grants)
+			if (grantRequestsEqual(grantRequest, grant)) return true;
 	return false;
 }
 
@@ -118,9 +118,9 @@ export function getNumberOfSubscribers(
 ) {
 	let subscriptionCount = 0;
 	for (const subscriptions of Object.values(state.subscriptions)) {
-		for (const s of subscriptions) {
+		for (const sub of subscriptions) {
 			const { type, deviceId, sessionId } = subscriptionRequest;
-			const { type: sType, deviceId: sDeviceId, sessionId: sSessionId } = s;
+			const { type: sType, deviceId: sDeviceId, sessionId: sSessionId } = sub;
 			if (
 				sessionId === sSessionId &&
 				sDeviceId === deviceId &&
@@ -133,7 +133,7 @@ export function getNumberOfSubscribers(
 						subscriptionCount++;
 						break;
 					case 'telemetry': {
-						const { telemetryKeys } = s as TelemetrySubscription;
+						const { telemetryKeys } = sub as TelemetrySubscription;
 						if (telemetryKeys.includes(subscriptionRequest.telemetryKey)) {
 							subscriptionCount++;
 						}

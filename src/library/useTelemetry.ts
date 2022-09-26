@@ -9,7 +9,7 @@ import { TelemetrySubscriptionRequest } from './base/ux4iot-shared';
 import { useSubscription } from './useSubscription';
 
 type HookOptions<T> = {
-	onData?: MessageCallbackBase<T>; //BREAKING
+	onData?: MessageCallbackBase<T>;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };

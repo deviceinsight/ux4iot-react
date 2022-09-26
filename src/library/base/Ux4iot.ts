@@ -132,30 +132,30 @@ export class Ux4iot {
 		for (const subscriptions of Object.values(
 			ux4iotState.state.subscriptions
 		)) {
-			for (const s of subscriptions) {
-				const { type, deviceId } = s;
+			for (const sub of subscriptions) {
+				const { type, deviceId } = sub;
 				if (deviceId === m.deviceId) {
 					switch (type) {
 						case 'telemetry': {
 							if (isTelemetryMessage(m)) {
 								const telemetry: Record<string, unknown> = {};
-								for (const telemetryKey of s.telemetryKeys) {
+								for (const telemetryKey of sub.telemetryKeys) {
 									telemetry[telemetryKey] = m.telemetry[telemetryKey];
 								}
-								s.onData(m.deviceId, telemetry, m.timestamp);
+								sub.onData(m.deviceId, telemetry, m.timestamp);
 							}
 							break;
 						}
 						case 'connectionState':
 							isConnectionStateMessage(m) &&
-								s.onData(m.deviceId, m.connectionState, m.timestamp);
+								sub.onData(m.deviceId, m.connectionState, m.timestamp);
 							break;
 						case 'd2cMessages':
-							isD2CMessage(m) && s.onData(m.deviceId, m.message, m.timestamp);
+							isD2CMessage(m) && sub.onData(m.deviceId, m.message, m.timestamp);
 							break;
 						case 'deviceTwin':
 							isDeviceTwinMessage(m) &&
-								s.onData(m.deviceId, m.deviceTwin, m.timestamp);
+								sub.onData(m.deviceId, m.deviceTwin, m.timestamp);
 							break;
 					}
 				}
@@ -167,10 +167,10 @@ export class Ux4iot {
 		for (const [subscriberId, subscriptions] of Object.entries(
 			ux4iotState.state.subscriptions
 		)) {
-			for (const s of subscriptions) {
-				const { onData, ...subscriptionRequest } = s;
-				if (s.type === 'telemetry') {
-					const { deviceId, type, telemetryKeys } = s;
+			for (const sub of subscriptions) {
+				const { onData, ...subscriptionRequest } = sub;
+				if (sub.type === 'telemetry') {
+					const { deviceId, type, telemetryKeys } = sub;
 					for (const telemetryKey of telemetryKeys) {
 						const sr = {
 							sessionId: this.sessionId,
@@ -302,11 +302,11 @@ export class Ux4iot {
 		const subscriptions: Record<string, string[]> = {};
 
 		if (registered) {
-			for (const s of registered) {
-				if (s.type === 'telemetry') {
-					subscriptions[s.deviceId] = s.telemetryKeys;
+			for (const sub of registered) {
+				if (sub.type === 'telemetry') {
+					subscriptions[sub.deviceId] = sub.telemetryKeys;
 				} else {
-					subscriptions[s.deviceId] = [];
+					subscriptions[sub.deviceId] = [];
 				}
 			}
 		}
@@ -317,15 +317,19 @@ export class Ux4iot {
 		const subscriptions = ux4iotState.state.subscriptions[subscriberId];
 
 		if (subscriptions) {
-			for (const s of subscriptions) {
+			for (const sub of subscriptions) {
 				try {
-					if (s.type === 'telemetry') {
-						for (const telemetryKey of s.telemetryKeys) {
-							const sr = { type: s.type, deviceId: s.deviceId, telemetryKey };
+					if (sub.type === 'telemetry') {
+						for (const telemetryKey of sub.telemetryKeys) {
+							const sr = {
+								type: sub.type,
+								deviceId: sub.deviceId,
+								telemetryKey,
+							};
 							await this.unsubscribe(subscriberId, sr);
 						}
 					} else {
-						await this.unsubscribe(subscriberId, s);
+						await this.unsubscribe(subscriberId, sub);
 					}
 				} catch (error) {
 					console.warn('couldnt unsubscribe subscriberId', subscriberId, error);
