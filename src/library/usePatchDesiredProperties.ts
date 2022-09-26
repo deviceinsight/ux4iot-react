@@ -1,7 +1,10 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
-import { Ux4iotContext } from './Ux4iotContext';
-import { GrantErrorCallback } from './types';
-import { IoTHubResponse } from './ux4iot-shared';
+import { useCallback, useEffect, useRef } from 'react';
+import { useUx4iot } from './Ux4iotContext';
+import { GrantErrorCallback } from './base/types';
+import {
+	DesiredPropertyGrantRequest,
+	IoTHubResponse,
+} from './base/ux4iot-shared';
 
 type UsePatchDesiredPropertiesOutput = (
 	desiredProperties: Record<string, unknown>
@@ -16,7 +19,7 @@ export const usePatchDesiredProperties = (
 	options: HookOptions = {}
 ): UsePatchDesiredPropertiesOutput => {
 	const { onGrantError } = options;
-	const ux4iot = useContext(Ux4iotContext);
+	const { ux4iot } = useUx4iot();
 	const onGrantErrorRef = useRef(onGrantError);
 
 	useEffect(() => {
@@ -24,16 +27,21 @@ export const usePatchDesiredProperties = (
 	}, [onGrantError]);
 
 	const patchDesiredProperties = useCallback(
-		async (deviceId: string, desiredProperties: Record<string, unknown>) => {
-			return await ux4iot?.patchDesiredProperties(
+		async (
+			desiredProperties: Record<string, unknown>
+		): Promise<IoTHubResponse | void> => {
+			const req: Omit<DesiredPropertyGrantRequest, 'sessionId'> = {
+				type: 'desiredProperties',
 				deviceId,
+			};
+			return await ux4iot.patchDesiredProperties(
+				req,
 				desiredProperties,
 				onGrantErrorRef.current
 			);
 		},
-		[ux4iot]
+		[deviceId, ux4iot]
 	);
 
-	return (desiredProperties): Promise<IoTHubResponse | void> =>
-		patchDesiredProperties(deviceId, desiredProperties);
+	return patchDesiredProperties;
 };

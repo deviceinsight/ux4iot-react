@@ -1,3 +1,13 @@
+import {
+	ConnectionStateMessage,
+	DeviceTwinMessage,
+	TelemetryMessage,
+	D2CMessage,
+	GrantRequest,
+	SubscriptionRequest,
+	TelemetryGrantRequest,
+} from './ux4iot-shared';
+
 const DELIMITER = '___';
 
 export function makeSubKey(...args: unknown[]): string {
@@ -67,4 +77,72 @@ export function printDevModeWarning(): void {
 	`,
 		'color: red; font-weight: bold; font-size: 14px;'
 	);
+}
+
+export function isConnectionStateMessage(
+	message: Record<string, unknown>
+): message is ConnectionStateMessage {
+	return !!message.connectionState;
+}
+
+export function isD2CMessage(
+	message: Record<string, unknown>
+): message is D2CMessage {
+	return !!message.message;
+}
+
+export function isDeviceTwinMessage(
+	message: Record<string, unknown>
+): message is DeviceTwinMessage {
+	return !!message.deviceTwin;
+}
+
+export function isTelemetryMessage(
+	message: Record<string, unknown>
+): message is TelemetryMessage {
+	return !!message.telemetry;
+}
+
+export function grantRequestsEqual(g1: GrantRequest, g2: GrantRequest) {
+	if (g1.type === g2.type && g1.sessionId === g2.sessionId) {
+		switch (g1.type) {
+			case 'desiredProperties':
+			case 'deviceTwin':
+			case 'connectionState':
+			case 'd2cMessages':
+				return g1.deviceId === g2.deviceId;
+			case 'directMethod':
+				return (
+					g1.deviceId === g2.deviceId &&
+					g1.directMethodName === (g2 as typeof g1).directMethodName
+				);
+			case 'telemetry':
+				return (
+					g1.deviceId === g2.deviceId &&
+					g1.telemetryKey === (g2 as typeof g1).telemetryKey
+				);
+			default:
+				return false;
+		}
+	}
+	return false;
+}
+
+export function getGrantFromSubscriptionRequest(
+	request: SubscriptionRequest
+): GrantRequest {
+	const { type, sessionId, deviceId } = request;
+	const grantRequest: GrantRequest = { sessionId, deviceId, type };
+	switch (type) {
+		case 'connectionState':
+		case 'deviceTwin':
+		case 'd2cMessages':
+			return grantRequest;
+		case 'telemetry': {
+			const { telemetryKey } = request;
+			return { ...grantRequest, telemetryKey } as TelemetryGrantRequest;
+		}
+		default:
+			throw Error('No such grantType for subscriptionType');
+	}
 }

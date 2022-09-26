@@ -1,53 +1,48 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { GrantErrorCallback, RawD2CMessageCallback } from './types';
-import { Ux4iotContext } from './Ux4iotContext';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+	D2CMessageCallback,
+	GrantErrorCallback,
+	SubscriptionErrorCallback,
+} from './base/types';
+import { useSubscription } from './useSubscription';
+import { D2CMessageSubscriptionRequest } from './base/ux4iot-shared';
 
-type DataCallback<T> = (data: T, timestamp: string | undefined) => void;
+type HookOptions = {
+	onData?: D2CMessageCallback; // BREAKING
+	onGrantError?: GrantErrorCallback;
+	onSubscriptionError?: SubscriptionErrorCallback;
+};
 
-export const useD2CMessages = <T>(
+export const useD2CMessages = <T extends Record<string, unknown>>(
 	deviceId: string,
-	options: {
-		onData?: DataCallback<T>;
-		onGrantError?: GrantErrorCallback;
-	} = {}
+	options: HookOptions = {}
 ): T | undefined => {
-	const { onData, onGrantError } = options;
-	const subscriberIdRef = useRef(uuidv4());
-	const ux4iot = useContext(Ux4iotContext);
-	const [lastMessage, setLastMessage] = useState<T | undefined>();
+	const { onData } = options;
 	const onDataRef = useRef(onData);
-	const onGrantErrorRef = useRef(onGrantError);
+	const [lastMessage, setLastMessage] = useState<T | undefined>();
 
 	useEffect(() => {
 		onDataRef.current = onData;
-		onGrantErrorRef.current = onGrantError;
-	}, [onData, onGrantError]);
+	}, [onData]);
 
-	const onMessage: RawD2CMessageCallback = useCallback(
-		(deviceId: string, message: unknown, timestamp: string | undefined) => {
-			setLastMessage(message as T);
-			onDataRef.current && onDataRef.current(message as T, timestamp);
+	const onMessage: D2CMessageCallback = useCallback(
+		(deviceId, message, timestamp) => {
+			if (message) {
+				setLastMessage(message as T);
+				onDataRef.current?.(deviceId, message, timestamp);
+			}
 		},
-		[]
+		[setLastMessage]
 	);
 
-	useEffect(() => {
-		ux4iot?.registerRawD2CMessageSubscriber(
-			subscriberIdRef.current,
-			deviceId,
-			onMessage,
-			onGrantErrorRef.current
-		);
-	}, [ux4iot, deviceId, onMessage]);
+	const subscriptionRequest = useCallback((): Omit<
+		D2CMessageSubscriptionRequest,
+		'sessionId'
+	> => {
+		return { deviceId, type: 'd2cMessages' };
+	}, [deviceId]);
 
-	useEffect(() => {
-		const ux4iotInstance = ux4iot;
-		const id = subscriberIdRef.current;
-		return () => {
-			ux4iotInstance?.cleanupSubscriberId(id);
-		};
-	}, [ux4iot]);
+	useSubscription(options, onMessage, subscriptionRequest);
 
 	return lastMessage;
 };

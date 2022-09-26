@@ -1,8 +1,7 @@
-import { DeviceMethodParams } from 'azure-iothub';
-import { useCallback, useContext, useEffect, useRef } from 'react';
-import { Ux4iotContext } from './Ux4iotContext';
-import { GrantErrorCallback } from './types';
-import { IoTHubResponse } from './ux4iot-shared';
+import { useCallback, useEffect, useRef } from 'react';
+import { useUx4iot } from './Ux4iotContext';
+import { GrantErrorCallback } from './base/types';
+import { DirectMethodGrantRequest, IoTHubResponse } from './base/ux4iot-shared';
 
 type UseDirectMethodOutput = (
 	payload: Record<string, unknown>,
@@ -16,11 +15,11 @@ type HookOptions = {
 
 export const useDirectMethod = (
 	deviceId: string,
-	methodName: string,
+	directMethodName: string,
 	options: HookOptions = {}
 ): UseDirectMethodOutput => {
 	const { onGrantError } = options;
-	const ux4iot = useContext(Ux4iotContext);
+	const { ux4iot } = useUx4iot();
 	const onGrantErrorRef = useRef(onGrantError);
 
 	useEffect(() => {
@@ -29,23 +28,28 @@ export const useDirectMethod = (
 
 	const directMethod = useCallback(
 		async (
-			deviceId: string,
-			options: DeviceMethodParams
+			payload,
+			responseTimeoutInSeconds,
+			connectTimeoutInSeconds
 		): Promise<IoTHubResponse | void> => {
-			return await ux4iot?.invokeDirectMethod(
+			const req: Omit<DirectMethodGrantRequest, 'sessionId'> = {
+				type: 'directMethod',
 				deviceId,
-				options,
+				directMethodName,
+			};
+			return await ux4iot.invokeDirectMethod(
+				req,
+				{
+					methodName: directMethodName,
+					payload,
+					responseTimeoutInSeconds,
+					connectTimeoutInSeconds,
+				},
 				onGrantErrorRef.current
 			);
 		},
-		[ux4iot]
+		[ux4iot, deviceId, directMethodName]
 	);
 
-	return (payload, responseTimeoutInSeconds, connectTimeoutInSeconds) =>
-		directMethod(deviceId, {
-			methodName,
-			payload,
-			responseTimeoutInSeconds,
-			connectTimeoutInSeconds,
-		});
+	return directMethod;
 };

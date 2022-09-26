@@ -1,59 +1,48 @@
-import { useCallback, useContext, useEffect, useRef, useState } from 'react';
-import { v4 as uuidv4 } from 'uuid';
-import { ConnectionStateCallback, GrantErrorCallback } from './types';
-import { Ux4iotContext } from './Ux4iotContext';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+	ConnectionStateCallback,
+	GrantErrorCallback,
+	SubscriptionErrorCallback,
+} from './base/types';
+import { useSubscription } from './useSubscription';
+import { ConnectionStateSubscriptionRequest } from './base/ux4iot-shared';
 
 type HookOptions = {
-	onData?: (connectionState: boolean) => void;
+	onData?: ConnectionStateCallback; // BREAKING
 	onGrantError?: GrantErrorCallback;
+	onSubscriptionError?: SubscriptionErrorCallback;
 };
 
 export const useConnectionState = (
 	deviceId: string,
 	options: HookOptions = {}
 ): boolean | undefined => {
-	const { onData, onGrantError } = options;
-	const ux4iot = useContext(Ux4iotContext);
-	const [connectionState, setConnectionState] = useState<boolean>();
-	const subscriberIdRef = useRef(uuidv4());
+	const { onData } = options;
 	const onDataRef = useRef(onData);
-	const onGrantErrorRef = useRef(onGrantError);
+	const [connectionState, setConnectionState] = useState<boolean>();
 
 	useEffect(() => {
 		onDataRef.current = onData;
-		onGrantErrorRef.current = onGrantError;
-	}, [onData, onGrantError]);
+	}, [onData]);
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
-		(deviceId, state) => {
-			setConnectionState(state);
-			onDataRef.current && onDataRef.current(state);
+		(deviceId, connectionState, timestamp) => {
+			if (connectionState !== undefined) {
+				setConnectionState(connectionState);
+				onDataRef.current?.(deviceId, connectionState, timestamp);
+			}
 		},
 		[setConnectionState]
 	);
 
-	useEffect(() => {
-		const id = subscriberIdRef.current;
-		ux4iot?.registerConnectionStateSubscriber(
-			id,
-			deviceId,
-			onConnectionState,
-			onGrantErrorRef.current
-		);
+	const subscriptionRequest = useCallback((): Omit<
+		ConnectionStateSubscriptionRequest,
+		'sessionId'
+	> => {
+		return { deviceId, type: 'connectionState' };
+	}, [deviceId]);
 
-		return () => {
-			ux4iot?.unregisterConnectionStateSubscriber(id, deviceId);
-		};
-	}, [deviceId, onConnectionState, ux4iot]);
-
-	useEffect(() => {
-		const ux4iotInstance = ux4iot;
-		const id = subscriberIdRef.current;
-
-		return () => {
-			ux4iotInstance?.cleanupSubscriberId(id);
-		};
-	}, [ux4iot]);
+	useSubscription(options, onConnectionState, subscriptionRequest);
 
 	return connectionState;
 };
