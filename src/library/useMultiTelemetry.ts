@@ -21,6 +21,8 @@ import {
 } from './base/types';
 import { TelemetrySubscriptionRequest } from './base/ux4iot-shared';
 
+export type { TelemetryValue, TelemetryState } from './telemetryState';
+
 type UseMultiTelemetryOutput = {
 	addTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;
 	removeTelemetry: (deviceId: string, telemetryKeys: string[]) => Promise<void>;
