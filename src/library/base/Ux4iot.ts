@@ -71,7 +71,9 @@ export class Ux4iot {
 				return;
 			}
 			const socketURI = this.api.getSocketURL(this.sessionId);
-			this.socket = io(socketURI);
+			this.socket = io(socketURI, {
+				transports: ['websocket'],
+			});
 			this.socket.on('connect', this.onConnect.bind(this));
 			this.socket.on('connect_error', this.onConnectError.bind(this));
 			this.socket.on('disconnect', this.onDisconnect.bind(this));
