@@ -1,8 +1,15 @@
-import { Twin } from 'azure-iothub';
-
+// twins won't change in the forseeable future so instead of using the "Twin['properties] type"
+// of the azure-iothub library a manual typing is used. azure-iothub isn't really getting updated..
 export type TwinUpdate = {
 	version: number;
-	properties: Twin['properties'];
+	properties: {
+		reported: {
+			[key: string]: any;
+		};
+		desired: {
+			[key: string]: any;
+		};
+	};
 };
 
 export type DeviceId = string;
@@ -47,7 +54,7 @@ type SubscriptionRequestBase<T> = {
 } & T;
 export type TelemetrySubscriptionRequest = SubscriptionRequestBase<{
 	type: 'telemetry';
-	telemetryKey: string; // null means: Access to all telemetry keys
+	telemetryKey: string | null; // null means: Access to all telemetry keys
 }>;
 export type DeviceTwinSubscriptionRequest = SubscriptionRequestBase<{
 	type: 'deviceTwin';
