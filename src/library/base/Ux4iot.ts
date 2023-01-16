@@ -240,6 +240,9 @@ export class Ux4iot {
 			sessionId: this.sessionId,
 		} as SubscriptionRequest;
 		const grantRequest = getGrantFromSubscriptionRequest(sr);
+
+		// this line was moved here temporarily
+		ux4iotState.addSubscription(subscriberId, sr, onData);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			const response = await this.getLastValueForSubscriptionRequest(sr);
@@ -250,15 +253,16 @@ export class Ux4iot {
 				// If the request fails, then we do not need to remove the subscription, since it will only be added after
 				// the subscribe request is successful
 				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
-				if (ux4iotState.getNumberOfSubscribers(sr) === 0) {
+				if (ux4iotState.getNumberOfSubscribers(sr) === 1) {
 					await this.api.subscribe(subscriptionRequest);
 				}
-				ux4iotState.addSubscription(subscriberId, sr, onData);
+				// temporarily disabled for 2 to 3 migration ux4iotState.addSubscription(subscriberId, sr, onData);
 			} catch (error) {
 				onSubscriptionError?.((error as AxiosError).response?.data);
 			}
 		} else {
 			onSubscriptionError?.('No grant for subscription');
+			ux4iotState.removeSubscription(subscriberId, sr);
 		}
 	}
 
