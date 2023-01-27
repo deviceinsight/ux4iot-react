@@ -217,9 +217,10 @@ export class Ux4iot {
 	}
 
 	async grant(grantRequest: GrantRequest, onGrantError?: GrantErrorCallback) {
-		if (ux4iotState.hasGrant(grantRequest)) {
-			return;
-		}
+		// TEMPORARILY DISABLED FOR MIGRATION 2 TO 3 UPDATE
+		// if (ux4iotState.hasGrant(grantRequest)) {
+		// 	return;
+		// }
 		const grantResponse = await this.api.requestGrant(grantRequest);
 		if (grantResponse === GRANT_RESPONSES.GRANTED) {
 			ux4iotState.addGrant(grantRequest);
