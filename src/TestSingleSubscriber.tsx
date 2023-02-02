@@ -20,8 +20,6 @@ export const TestSingleSubscriber: FC<Props> = ({
 		onGrantError: error => console.log(error),
 	});
 
-	console.log('rendered single subscriber');
-
 	return (
 		<div>
 			<h3>UseTelemetry</h3>
