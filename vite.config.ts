@@ -7,4 +7,7 @@ export default defineConfig({
 	esbuild: {
 		sourcemap: 'external',
 	},
+	server: {
+		port: 3000,
+	},
 });
