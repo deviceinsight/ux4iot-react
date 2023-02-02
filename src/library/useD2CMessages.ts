@@ -35,12 +35,12 @@ export const useD2CMessages = <T extends Record<string, unknown>>(
 		[setLastMessage]
 	);
 
-	const subscriptionRequest = useCallback((): Omit<
-		D2CMessageSubscriptionRequest,
-		'sessionId'
-	> => {
-		return { deviceId, type: 'd2cMessages' };
-	}, [deviceId]);
+	const subscriptionRequest = useCallback(
+		(sessionId: string): D2CMessageSubscriptionRequest => {
+			return { deviceId, type: 'd2cMessages', sessionId };
+		},
+		[deviceId]
+	);
 
 	useSubscription(options, onMessage, subscriptionRequest);
 

@@ -38,12 +38,12 @@ export const useDeviceTwin = (
 		[setTwin]
 	);
 
-	const subscriptionRequest = useCallback((): Omit<
-		DeviceTwinSubscriptionRequest,
-		'sessionId'
-	> => {
-		return { deviceId, type: 'deviceTwin' };
-	}, [deviceId]);
+	const subscriptionRequest = useCallback(
+		(sessionId: string): DeviceTwinSubscriptionRequest => {
+			return { deviceId, type: 'deviceTwin', sessionId };
+		},
+		[deviceId]
+	);
 
 	useSubscription(options, onDeviceTwin, subscriptionRequest);
 

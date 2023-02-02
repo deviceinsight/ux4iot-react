@@ -231,13 +231,16 @@ export function removeSubscription(
 	if (!state.subscriptions[subscriberId]) {
 		return;
 	}
-	const { type, deviceId } = subscriptionRequest;
+	const { type, deviceId, sessionId } = subscriptionRequest;
 	switch (type) {
 		case 'deviceTwin':
 		case 'connectionState':
 		case 'd2cMessages': {
 			const subscriptionRequest = state.subscriptions[subscriberId].find(
-				s => s.deviceId === deviceId && s.type === type
+				s =>
+					s.deviceId === deviceId &&
+					s.type === type &&
+					s.sessionId === sessionId
 			);
 
 			state.subscriptions[subscriberId] = state.subscriptions[
@@ -252,7 +255,7 @@ export function removeSubscription(
 		case 'telemetry':
 			if (state.subscriptions[subscriberId]) {
 				const foundSubscription = state.subscriptions[subscriberId].find(s => {
-					return s.deviceId === deviceId;
+					return s.deviceId === deviceId && s.sessionId === sessionId;
 				}) as TelemetrySubscription | undefined;
 				if (foundSubscription) {
 					const keys = foundSubscription.telemetryKeys;

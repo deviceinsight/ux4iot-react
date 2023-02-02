@@ -129,9 +129,9 @@ export function grantRequestsEqual(g1: GrantRequest, g2: GrantRequest) {
 }
 
 export function getGrantFromSubscriptionRequest(
-	request: SubscriptionRequest
+	subscriptionRequest: SubscriptionRequest
 ): GrantRequest {
-	const { type, sessionId, deviceId } = request;
+	const { type, sessionId, deviceId } = subscriptionRequest;
 	const grantRequest: GrantRequest = { sessionId, deviceId, type };
 	switch (type) {
 		case 'connectionState':
@@ -139,7 +139,7 @@ export function getGrantFromSubscriptionRequest(
 		case 'd2cMessages':
 			return grantRequest;
 		case 'telemetry': {
-			const { telemetryKey } = request;
+			const { telemetryKey } = subscriptionRequest;
 			return { ...grantRequest, telemetryKey } as TelemetryGrantRequest;
 		}
 		default:

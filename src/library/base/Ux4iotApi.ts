@@ -61,7 +61,6 @@ export class Ux4iotApi {
 	}
 
 	public setSessionId(sessionId: string) {
-		console.log('update sessionId to', sessionId);
 		this.sessionId = sessionId;
 	}
 

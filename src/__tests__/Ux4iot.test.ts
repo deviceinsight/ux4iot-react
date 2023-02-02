@@ -7,20 +7,21 @@ jest.mock('socket.io-client', () => {
 		})),
 	};
 });
-const getSessionIdMock = jest.fn();
+const getSessionIdMock = jest.fn(() => Promise.resolve());
 jest.mock('../library/base/Ux4iotApi', () => {
 	return {
 		Ux4iotApi: jest.fn().mockImplementation(() => ({
 			...jest.requireActual('../library/base/Ux4iotApi'),
 			getSessionId: getSessionIdMock,
+			setSessionId: () => undefined,
 			getSocketURL: () => `fake`,
 		})),
 	};
 });
 
 describe('Ux4iot', () => {
-	it('should make exactly one call to getSessionId on initialization', () => {
-		new Ux4iot({ adminConnectionString: '' });
+	it('should make exactly one call to getSessionId on initialization', async () => {
+		await Ux4iot.create({ adminConnectionString: '' });
 
 		expect(getSessionIdMock).toBeCalledTimes(1);
 	});

@@ -2,6 +2,7 @@ import {
 	ComponentType,
 	createContext,
 	ReactNode,
+	useCallback,
 	useContext,
 	useEffect,
 	useRef,
@@ -17,8 +18,6 @@ type Ux4iotProviderProps = {
 
 type Ux4iotContextProps = { ux4iot: Ux4iot | undefined; sessionId: string };
 
-let ux4iotInstance: Ux4iot | undefined;
-
 export const Ux4iotContext = createContext<Ux4iotContextProps>({
 	ux4iot: undefined,
 	sessionId: '',
@@ -27,46 +26,48 @@ export const Ux4iotContextProvider: ComponentType<Ux4iotProviderProps> = ({
 	options,
 	children,
 }) => {
+	const optionsRef = useRef(options);
 	const [sessionId, setSessionId] = useState('');
+	const [ux4iot, setUx4iot] = useState<Ux4iot>();
 
-	const ux4iot = useRef<Ux4iot>(
-		ux4iotInstance ||
-			new Ux4iot(options, (id: string) => {
-				console.log('called onSessionIdChange', id);
-			})
-	);
-	if (!ux4iotInstance) {
-		ux4iotInstance = ux4iot.current;
+	function onSessionId(sessionId: string) {
+		setSessionId(sessionId);
 	}
 
-	function onSessionIdChange(id: string) {
-		setSessionId(id);
-	}
-	ux4iot.current.onSessionId = onSessionIdChange;
+	const initialize = useCallback(async () => {
+		if (!ux4iot) {
+			try {
+				const ux4iot = await Ux4iot.create(optionsRef.current, onSessionId);
+				setUx4iot(ux4iot);
+			} catch (error) {
+				console.error(error);
+			}
+		}
+	}, [ux4iot]);
 
 	useEffect(() => {
-		const instance = ux4iot.current;
+		optionsRef.current = options;
+	}, [options]);
+
+	useEffect(() => {
+		initialize();
+
 		return () => {
-			instance.destroy();
-			ux4iotInstance = undefined;
+			if (ux4iot) {
+				ux4iot.destroy();
+				setUx4iot(undefined);
+				setSessionId('');
+			}
 		};
-	}, []);
+	}, [ux4iot, initialize]);
 
 	return (
-		<Ux4iotContext.Provider value={{ ux4iot: ux4iot.current, sessionId }}>
+		<Ux4iotContext.Provider value={{ ux4iot, sessionId }}>
 			{children}
 		</Ux4iotContext.Provider>
 	);
 };
 
-export function useUx4iot(): { ux4iot: Ux4iot; sessionId: string } {
-	const { ux4iot, sessionId } = useContext(Ux4iotContext);
-
-	if (ux4iot === undefined) {
-		throw new Error(
-			'ux4iot-react hooks must be used within a Ux4iotContextProvider'
-		);
-	}
-
-	return { ux4iot, sessionId };
-}
+export const useUx4iot = () => {
+	return useContext(Ux4iotContext);
+};

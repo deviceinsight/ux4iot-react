@@ -1,12 +1,12 @@
-import { useEffect, useCallback, useRef, useState } from 'react';
+import { useEffect, useCallback, useRef, useState, useContext } from 'react';
 import { v4 as uuid } from 'uuid';
-import { useUx4iot } from './Ux4iotContext';
 import {
 	GrantErrorCallback,
 	SubscriptionErrorCallback,
 	ConnectionStateCallback,
 } from './base/types';
 import { ConnectionStateSubscriptionRequest } from './base/ux4iot-shared';
+import { Ux4iotContext } from './Ux4iotContext';
 
 type UseMultiConnectionStateOutput = {
 	addConnectionState: (deviceId: string) => Promise<void>;
@@ -25,12 +25,14 @@ type HookOptions = {
 };
 
 function getSubscriptionRequest(
-	deviceId: string
+	deviceId: string,
+	sessionId: string
 ): ConnectionStateSubscriptionRequest {
 	return {
+		sessionId,
 		deviceId,
 		type: 'connectionState',
-	} as ConnectionStateSubscriptionRequest;
+	};
 }
 
 export const useMultiConnectionState = (
@@ -38,8 +40,9 @@ export const useMultiConnectionState = (
 ): UseMultiConnectionStateOutput => {
 	const { onData, onGrantError, onSubscriptionError, initialSubscribers } =
 		options;
-	const { ux4iot } = useUx4iot();
+	const { ux4iot, sessionId } = useContext(Ux4iotContext);
 	const [currentSubscribers, setCurrentSubscribers] = useState<string[]>([]);
+	const initialSubscribersRef = useRef(initialSubscribers);
 	const onDataRef = useRef(onData);
 	const onGrantErrorRef = useRef(onGrantError);
 	const onSubscriptionErrorRef = useRef(onSubscriptionError);
@@ -47,6 +50,10 @@ export const useMultiConnectionState = (
 	const [connectionStates, setConnectionStates] = useState<
 		Record<string, boolean>
 	>({});
+
+	useEffect(() => {
+		initialSubscribersRef.current = initialSubscribers;
+	}, [initialSubscribers]);
 
 	useEffect(() => {
 		onDataRef.current = onData;
@@ -69,61 +76,75 @@ export const useMultiConnectionState = (
 
 	const addConnectionState = useCallback(
 		async (deviceId: string) => {
-			await ux4iot.subscribe(
-				subscriptionId.current,
-				getSubscriptionRequest(deviceId),
-				onConnectionState,
-				onSubscriptionErrorRef.current,
-				onGrantErrorRef.current
-			);
-			setCurrentSubscribers(
-				Object.keys(ux4iot.getSubscriberIdSubscriptions(subscriptionId.current))
-			);
+			if (ux4iot) {
+				await ux4iot.subscribe(
+					subscriptionId.current,
+					getSubscriptionRequest(deviceId, sessionId),
+					onConnectionState,
+					onSubscriptionErrorRef.current,
+					onGrantErrorRef.current
+				);
+				setCurrentSubscribers(
+					Object.keys(
+						ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
+					)
+				);
+			}
 		},
-		[ux4iot, onConnectionState]
+		[ux4iot, onConnectionState, sessionId]
 	);
 
 	const removeConnectionState = useCallback(
 		async (deviceId: string) => {
-			await ux4iot.unsubscribe(
-				subscriptionId.current,
-				getSubscriptionRequest(deviceId),
-				onSubscriptionErrorRef.current,
-				onGrantErrorRef.current
-			);
-			setCurrentSubscribers(
-				Object.keys(ux4iot.getSubscriberIdSubscriptions(subscriptionId.current))
-			);
+			if (ux4iot) {
+				await ux4iot.unsubscribe(
+					subscriptionId.current,
+					getSubscriptionRequest(deviceId, sessionId),
+					onSubscriptionErrorRef.current,
+					onGrantErrorRef.current
+				);
+				setCurrentSubscribers(
+					Object.keys(
+						ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
+					)
+				);
+			}
 		},
-		[ux4iot]
+		[ux4iot, sessionId]
 	);
 
 	const toggleConnectionState = useCallback(
 		async (deviceId: string) => {
-			ux4iot.hasSubscription(
-				subscriptionId.current,
-				getSubscriptionRequest(deviceId)
-			)
-				? await removeConnectionState(deviceId)
-				: await addConnectionState(deviceId);
+			if (ux4iot) {
+				ux4iot.hasSubscription(
+					subscriptionId.current,
+					getSubscriptionRequest(deviceId, sessionId)
+				)
+					? await removeConnectionState(deviceId)
+					: await addConnectionState(deviceId);
+			}
 		},
-		[ux4iot, addConnectionState, removeConnectionState]
+		[ux4iot, addConnectionState, removeConnectionState, sessionId]
 	);
 
 	const isSubscribed = useCallback(
 		(deviceId: string): boolean => {
-			return !!ux4iot.hasSubscription(
-				subscriptionId.current,
-				getSubscriptionRequest(deviceId)
-			);
+			if (ux4iot) {
+				return !!ux4iot.hasSubscription(
+					subscriptionId.current,
+					getSubscriptionRequest(deviceId, sessionId)
+				);
+			} else {
+				return false;
+			}
 		},
-		[ux4iot]
+		[ux4iot, sessionId]
 	);
 
 	useEffect(() => {
 		async function initSubscribe() {
-			if (ux4iot && initialSubscribers) {
-				for (const deviceId of initialSubscribers) {
+			if (ux4iot && sessionId && initialSubscribersRef.current) {
+				for (const deviceId of initialSubscribersRef.current) {
 					await addConnectionState(deviceId);
 				}
 				setCurrentSubscribers(
@@ -134,19 +155,12 @@ export const useMultiConnectionState = (
 			}
 		}
 		initSubscribe();
-		/*
-		 * Intentionally omitting initialSubscribers and onConnectionState to prevent
-		 * updates of dynamically assigned initialSubscribers from happening
-		 */
-	}, []); // eslint-disable-line
+	}, [ux4iot, addConnectionState, sessionId]);
 
 	useEffect(() => {
 		const subId = subscriptionId.current;
 		return () => {
-			async function cleanup() {
-				await ux4iot.removeSubscriberId(subId);
-			}
-			cleanup();
+			ux4iot?.removeSubscriberId(subId);
 		};
 	}, [ux4iot]);
 

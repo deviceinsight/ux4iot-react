@@ -35,12 +35,12 @@ export const useConnectionState = (
 		[setConnectionState]
 	);
 
-	const subscriptionRequest = useCallback((): Omit<
-		ConnectionStateSubscriptionRequest,
-		'sessionId'
-	> => {
-		return { deviceId, type: 'connectionState' };
-	}, [deviceId]);
+	const subscriptionRequest = useCallback(
+		(sessionId: string): ConnectionStateSubscriptionRequest => {
+			return { deviceId, type: 'connectionState', sessionId };
+		},
+		[deviceId]
+	);
 
 	useSubscription(options, onConnectionState, subscriptionRequest);
 

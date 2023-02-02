@@ -40,63 +40,74 @@ export class Ux4iot {
 	onSocketConnectionUpdate?: ConnectionUpdateFunction;
 	onSessionId?: (sessionId: string) => void;
 
-	constructor(
+	private constructor(
 		options: InitializationOptions,
+		sessionId: string,
+		api: Ux4iotApi,
 		onSessionId?: (sessionId: string) => void
 	) {
-		const { onSocketConnectionUpdate } = options;
-		this.api = new Ux4iotApi(options);
+		this.sessionId = sessionId;
+		this.api = api;
 		this.devMode = isDevOptions(options);
-		this.onSocketConnectionUpdate = onSocketConnectionUpdate;
 		this.onSessionId = onSessionId;
-		this.connect();
+		this.onSocketConnectionUpdate = options.onSocketConnectionUpdate;
+		this.initializeSocket();
 	}
 
-	private log(...args: any[]) {
-		if (this.devMode) {
-			console.warn('ux4iot:', ...args);
+	public static async create(
+		options: InitializationOptions,
+		onSessionId?: (sessionId: string) => void
+	): Promise<Ux4iot> {
+		const api = new Ux4iotApi(options);
+		try {
+			const sessionId = await api.getSessionId();
+			api.setSessionId(sessionId);
+			return new Ux4iot(options, sessionId, api, onSessionId);
+		} catch (error) {
+			const [reason, description] = NETWORK_STATES.UX4IOT_OFFLINE;
+			options.onSocketConnectionUpdate?.(reason, description);
+
+			throw NETWORK_STATES.UX4IOT_OFFLINE.join();
 		}
 	}
 
-	private async connect(): Promise<void> {
-		if (!this.socket) {
-			try {
-				const sessionId = await this.api.getSessionId();
-				this.sessionId = sessionId;
-			} catch (error) {
-				const [reason, description] = NETWORK_STATES.UX4IOT_OFFLINE;
-				this.log(reason, description, error);
-				this.onSocketConnectionUpdate?.(reason, description);
-				this.tryReconnect();
-				return;
-			}
-			const socketURI = this.api.getSocketURL(this.sessionId);
-			this.socket = io(socketURI, {
-				transports: ['websocket'],
-			});
-			this.socket.on('connect', this.onConnect.bind(this));
-			this.socket.on('connect_error', this.onConnectError.bind(this));
-			this.socket.on('disconnect', this.onDisconnect.bind(this));
-			this.socket.on('data', this.onData.bind(this));
-		}
+	private initializeSocket() {
+		const socketURI = this.api.getSocketURL(this.sessionId);
+		this.socket = io(socketURI, { transports: ['websocket'] });
+		this.socket.on('connect', this.onConnect.bind(this));
+		this.socket.on('connect_error', this.onConnectError.bind(this));
+		this.socket.on('disconnect', this.onDisconnect.bind(this));
+		this.socket.on('data', this.onData.bind(this));
 	}
 
 	private tryReconnect() {
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
-		this.retryTimeoutAfterError = setTimeout(
-			this.connect.bind(this),
-			RECONNECT_TIMEOUT
-		);
+
+		this.retryTimeoutAfterError = setTimeout(async () => {
+			if (!this.socket) {
+				try {
+					const sessionId = await this.api.getSessionId();
+					this.api.setSessionId(sessionId);
+					this.sessionId = sessionId;
+				} catch (error) {
+					const [reason, description] = NETWORK_STATES.UX4IOT_OFFLINE;
+					this.log(reason, description, error);
+					this.onSocketConnectionUpdate?.(reason, description);
+					this.tryReconnect();
+					return;
+				}
+				this.initializeSocket();
+			}
+		}, RECONNECT_TIMEOUT);
 	}
 
 	private async onConnect() {
 		this.log(`Connected to ${this.api.getSocketURL(this.sessionId)}`);
 		this.log('Successfully reconnected. Resubscribing to old state...');
-		this.api.setSessionId(this.sessionId);
 		ux4iotState.resetState();
+		console.log('onSessionId called with', this.sessionId);
 		this.onSessionId?.(this.sessionId); // this callback should be used to reestablish all subscriptions
-		const [reason, description] = NETWORK_STATES.CONNECTED;
-		this.onSocketConnectionUpdate?.(reason, description);
+		this.onSocketConnectionUpdate?.(...NETWORK_STATES.CONNECTED);
 		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
 	}
 
@@ -231,22 +242,20 @@ export class Ux4iot {
 
 	async subscribe(
 		subscriberId: string,
-		subscriptionRequest: Omit<SubscriptionRequest, 'sessionId'>,
+		subscriptionRequest: SubscriptionRequest,
 		onData: MessageCallback,
 		onSubscriptionError?: SubscriptionErrorCallback,
 		onGrantError?: GrantErrorCallback
 	) {
-		const sr = {
-			...subscriptionRequest,
-			sessionId: this.sessionId,
-		} as SubscriptionRequest;
-		const grantRequest = getGrantFromSubscriptionRequest(sr);
+		const grantRequest = getGrantFromSubscriptionRequest(subscriptionRequest);
 
 		// this line was moved here temporarily
-		ux4iotState.addSubscription(subscriberId, sr, onData);
+		ux4iotState.addSubscription(subscriberId, subscriptionRequest, onData);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
-			const response = await this.getLastValueForSubscriptionRequest(sr);
+			const response = await this.getLastValueForSubscriptionRequest(
+				subscriptionRequest
+			);
 			onData(response.deviceId, response.data, response.timestamp);
 			try {
 				// this if block is used as an optimization.
@@ -266,28 +275,24 @@ export class Ux4iot {
 			}
 		} else {
 			onSubscriptionError?.('No grant for subscription');
-			ux4iotState.removeSubscription(subscriberId, sr);
+			ux4iotState.removeSubscription(subscriberId, subscriptionRequest);
 		}
 	}
 
 	async unsubscribe(
 		subscriberId: string,
-		subscriptionRequest: Omit<SubscriptionRequest, 'sessionId'>,
+		subscriptionRequest: SubscriptionRequest,
 		onSubscriptionError?: SubscriptionErrorCallback,
 		onGrantError?: GrantErrorCallback
 	) {
-		const sr = {
-			...subscriptionRequest,
-			sessionId: this.sessionId,
-		} as SubscriptionRequest;
-		const grantRequest = getGrantFromSubscriptionRequest(sr);
+		const grantRequest = getGrantFromSubscriptionRequest(subscriptionRequest);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				if (ux4iotState.getNumberOfSubscribers(sr) === 1) {
+				if (ux4iotState.getNumberOfSubscribers(subscriptionRequest) === 1) {
 					await this.api.unsubscribe(subscriptionRequest);
 				}
-				ux4iotState.removeSubscription(subscriberId, sr);
+				ux4iotState.removeSubscription(subscriberId, subscriptionRequest);
 			} catch (error) {
 				onSubscriptionError?.(error);
 			}
@@ -300,11 +305,7 @@ export class Ux4iot {
 		subscriberId: string,
 		subscriptionRequest: SubscriptionRequest
 	) {
-		const sr = {
-			...subscriptionRequest,
-			sessionId: this.sessionId,
-		} as SubscriptionRequest;
-		return ux4iotState.hasSubscription(subscriberId, sr);
+		return ux4iotState.hasSubscription(subscriberId, subscriptionRequest);
 	}
 
 	getSubscriberIdSubscriptions(subscriberId: string): Record<string, string[]> {
@@ -335,6 +336,7 @@ export class Ux4iot {
 								type: sub.type,
 								deviceId: sub.deviceId,
 								telemetryKey,
+								sessionId: sub.sessionId,
 							};
 							await this.unsubscribe(subscriberId, sr);
 						}
@@ -371,6 +373,12 @@ export class Ux4iot {
 		} catch (error) {
 			this.log((error as AxiosError).response?.data);
 			return Promise.resolve({ deviceId, data: undefined, timestamp: '' });
+		}
+	}
+
+	private log(...args: any[]) {
+		if (this.devMode) {
+			console.warn('ux4iot:', ...args);
 		}
 	}
 }
