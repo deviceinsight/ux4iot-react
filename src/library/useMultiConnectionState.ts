@@ -63,7 +63,8 @@ export const useMultiConnectionState = (
 
 	const onConnectionState: ConnectionStateCallback = useCallback(
 		(deviceId, connectionState, timestamp) => {
-			if (connectionState) {
+			// can be undefined because last value requests that fail emit a undefined value.
+			if (connectionState !== undefined) {
 				setConnectionStates(prevState => ({
 					...prevState,
 					[deviceId]: connectionState,
