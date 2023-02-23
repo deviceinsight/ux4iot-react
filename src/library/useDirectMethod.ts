@@ -19,7 +19,7 @@ export const useDirectMethod = (
 	options: HookOptions = {}
 ): UseDirectMethodOutput => {
 	const { onGrantError } = options;
-	const { ux4iot } = useContext(Ux4iotContext);
+	const { ux4iot, sessionId } = useContext(Ux4iotContext);
 	const onGrantErrorRef = useRef(onGrantError);
 
 	useEffect(() => {
@@ -33,9 +33,10 @@ export const useDirectMethod = (
 			connectTimeoutInSeconds
 		): Promise<IoTHubResponse | void> => {
 			if (ux4iot) {
-				const req: Omit<DirectMethodGrantRequest, 'sessionId'> = {
-					type: 'directMethod',
+				const req: DirectMethodGrantRequest = {
+					sessionId,
 					deviceId,
+					type: 'directMethod',
 					directMethodName,
 				};
 				return await ux4iot.invokeDirectMethod(
@@ -50,7 +51,7 @@ export const useDirectMethod = (
 				);
 			}
 		},
-		[ux4iot, deviceId, directMethodName]
+		[ux4iot, sessionId, deviceId, directMethodName]
 	);
 
 	return directMethod;

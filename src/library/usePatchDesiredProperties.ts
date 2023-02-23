@@ -19,7 +19,7 @@ export const usePatchDesiredProperties = (
 	options: HookOptions = {}
 ): UsePatchDesiredPropertiesOutput => {
 	const { onGrantError } = options;
-	const { ux4iot } = useContext(Ux4iotContext);
+	const { ux4iot, sessionId } = useContext(Ux4iotContext);
 	const onGrantErrorRef = useRef(onGrantError);
 
 	useEffect(() => {
@@ -31,9 +31,10 @@ export const usePatchDesiredProperties = (
 			desiredProperties: Record<string, unknown>
 		): Promise<IoTHubResponse | void> => {
 			if (ux4iot) {
-				const req: Omit<DesiredPropertyGrantRequest, 'sessionId'> = {
-					type: 'desiredProperties',
+				const req: DesiredPropertyGrantRequest = {
+					sessionId,
 					deviceId,
+					type: 'desiredProperties',
 				};
 				return await ux4iot.patchDesiredProperties(
 					req,
@@ -42,7 +43,7 @@ export const usePatchDesiredProperties = (
 				);
 			}
 		},
-		[deviceId, ux4iot]
+		[deviceId, ux4iot, sessionId]
 	);
 
 	return patchDesiredProperties;

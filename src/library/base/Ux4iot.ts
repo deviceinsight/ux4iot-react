@@ -205,26 +205,25 @@ export class Ux4iot {
 	}
 
 	async patchDesiredProperties(
-		grantRequest: Omit<DesiredPropertyGrantRequest, 'sessionId'>,
-		desiredPropertyPatch: Record<string, unknown>,
+		grantRequest: DesiredPropertyGrantRequest,
+		patch: Record<string, unknown>,
 		onGrantError?: GrantErrorCallback
 	): Promise<IoTHubResponse | void> {
-		const grantReq = { ...grantRequest, sessionId: this.sessionId };
-		await this.grant(grantReq, onGrantError);
-		await this.api.patchDesiredProperties(
-			grantRequest.deviceId,
-			desiredPropertyPatch
-		);
+		await this.grant(grantRequest, onGrantError);
+		if (ux4iotState.hasGrant(grantRequest)) {
+			await this.api.patchDesiredProperties(grantRequest.deviceId, patch);
+		}
 	}
 
 	async invokeDirectMethod(
-		grantRequest: Omit<DirectMethodGrantRequest, 'sessionId'>,
+		grantRequest: DirectMethodGrantRequest,
 		options: DeviceMethodParams,
 		onGrantError?: GrantErrorCallback
 	): Promise<IoTHubResponse | void> {
-		const grantReq = { ...grantRequest, sessionId: this.sessionId };
-		await this.grant(grantReq, onGrantError);
-		return await this.api.invokeDirectMethod(grantRequest.deviceId, options);
+		await this.grant(grantRequest, onGrantError);
+		if (ux4iotState.hasGrant(grantRequest)) {
+			return await this.api.invokeDirectMethod(grantRequest.deviceId, options);
+		}
 	}
 
 	async grant(grantRequest: GrantRequest, onGrantError?: GrantErrorCallback) {
