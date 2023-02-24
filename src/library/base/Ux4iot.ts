@@ -356,7 +356,10 @@ export class Ux4iot {
 					return await this.api.getLastDeviceTwin(deviceId);
 				case 'telemetry': {
 					const { telemetryKey } = subscriptionRequest;
-					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
+					return await this.api.getLastTelemetryValues(
+						deviceId,
+						telemetryKey as string
+					);
 				}
 				case 'd2cMessages':
 					return Promise.resolve({ deviceId, data: undefined, timestamp: '' });

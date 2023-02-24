@@ -1,8 +1,15 @@
-import { Twin } from 'azure-iothub';
-
+// twins won't change in the forseeable future so instead of using the "Twin['properties] type"
+// of the azure-iothub library a manual typing is used. azure-iothub isn't really getting updated..
 export type TwinUpdate = {
 	version: number;
-	properties: Twin['properties'];
+	properties: {
+		reported: {
+			[key: string]: any;
+		};
+		desired: {
+			[key: string]: any;
+		};
+	};
 };
 
 export type DeviceId = string;
@@ -47,7 +54,7 @@ type SubscriptionRequestBase<T> = {
 } & T;
 export type TelemetrySubscriptionRequest = SubscriptionRequestBase<{
 	type: 'telemetry';
-	telemetryKey: string; // null means: Access to all telemetry keys
+	telemetryKey: string | null; // null means: Access to all telemetry keys
 }>;
 export type DeviceTwinSubscriptionRequest = SubscriptionRequestBase<{
 	type: 'deviceTwin';
@@ -129,3 +136,70 @@ export function parseConnectionString(
 	}
 	return parsed;
 }
+
+// Typeguards
+
+export const isGrantRequest = (request: unknown): request is GrantRequest => {
+	return (
+		!!request &&
+		typeof (request as GrantRequest).deviceId === 'string' &&
+		typeof (request as GrantRequest).sessionId === 'string'
+	);
+};
+
+export const isTelemetryGrantRequest = (
+	request: unknown
+): request is TelemetryGrantRequest => {
+	return (
+		!!request &&
+		isGrantRequest(request) &&
+		(request as TelemetryGrantRequest).type === 'telemetry' &&
+		typeof (request as TelemetryGrantRequest).telemetryKey === 'string'
+	);
+};
+export const isDeviceTwinGrantRequest = (
+	request: unknown
+): request is DeviceTwinGrantRequest => {
+	return (
+		!!request &&
+		isGrantRequest(request) &&
+		(request as GrantRequest).type === 'deviceTwin'
+	);
+};
+export const isConnectionStateGrantRequest = (
+	request: unknown
+): request is ConnectionStateGrantRequest => {
+	return (
+		!!request &&
+		isGrantRequest(request) &&
+		(request as GrantRequest).type === 'connectionState'
+	);
+};
+export const isDesiredPropertyGrantRequest = (
+	request: unknown
+): request is DesiredPropertyGrantRequest => {
+	return (
+		!!request &&
+		isGrantRequest(request) &&
+		(request as GrantRequest).type === 'desiredProperties'
+	);
+};
+export const isDirectMethodGrantRequest = (
+	request: unknown
+): request is DirectMethodGrantRequest => {
+	return (
+		!!request &&
+		isGrantRequest(request) &&
+		(request as GrantRequest).type === 'directMethod' &&
+		typeof (request as DirectMethodGrantRequest).directMethodName === 'string'
+	);
+};
+export const isD2CMessageGrantRequest = (
+	request: unknown
+): request is D2CMessageGrantRequest => {
+	return (
+		!!request &&
+		isGrantRequest(request) &&
+		(request as GrantRequest).type === 'd2cMessages'
+	);
+};

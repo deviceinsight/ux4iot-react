@@ -98,7 +98,9 @@ export function hasSubscription(
 					return true;
 				case 'telemetry': {
 					const { telemetryKeys } = sub as TelemetrySubscription;
-					return telemetryKeys.includes(subscriptionRequest.telemetryKey);
+					return telemetryKeys.includes(
+						subscriptionRequest.telemetryKey as string
+					);
 				}
 			}
 		}
@@ -134,7 +136,9 @@ export function getNumberOfSubscribers(
 						break;
 					case 'telemetry': {
 						const { telemetryKeys } = sub as TelemetrySubscription;
-						if (telemetryKeys.includes(subscriptionRequest.telemetryKey)) {
+						if (
+							telemetryKeys.includes(subscriptionRequest.telemetryKey as string)
+						) {
 							subscriptionCount++;
 						}
 						break;
@@ -210,7 +214,7 @@ export function addSubscription(
 					s => s.deviceId === deviceId
 				) as TelemetrySubscription;
 				if (foundSubscription) {
-					foundSubscription.telemetryKeys.push(telemetryKey);
+					foundSubscription.telemetryKeys.push(telemetryKey as string);
 				} else {
 					subscriptions[subscriberId].push(subscription);
 				}

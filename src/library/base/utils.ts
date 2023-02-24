@@ -104,23 +104,21 @@ export function isTelemetryMessage(
 }
 
 export function grantRequestsEqual(g1: GrantRequest, g2: GrantRequest) {
-	if (g1.type === g2.type && g1.sessionId === g2.sessionId) {
+	if (
+		g1.type === g2.type &&
+		g1.sessionId === g2.sessionId &&
+		g1.deviceId === g2.deviceId
+	) {
 		switch (g1.type) {
 			case 'desiredProperties':
 			case 'deviceTwin':
 			case 'connectionState':
 			case 'd2cMessages':
-				return g1.deviceId === g2.deviceId;
+				return true;
 			case 'directMethod':
-				return (
-					g1.deviceId === g2.deviceId &&
-					g1.directMethodName === (g2 as typeof g1).directMethodName
-				);
+				return g1.directMethodName === (g2 as typeof g1).directMethodName;
 			case 'telemetry':
-				return (
-					g1.deviceId === g2.deviceId &&
-					g1.telemetryKey === (g2 as typeof g1).telemetryKey
-				);
+				return g1.telemetryKey === (g2 as typeof g1).telemetryKey;
 			default:
 				return false;
 		}
