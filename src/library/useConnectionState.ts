@@ -8,7 +8,7 @@ import { useSubscription } from './useSubscription';
 import { ConnectionStateSubscriptionRequest } from './base/ux4iot-shared';
 
 type HookOptions = {
-	onData?: ConnectionStateCallback; // BREAKING
+	onData?: ConnectionStateCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };

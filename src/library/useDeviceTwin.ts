@@ -11,7 +11,7 @@ import {
 } from './base/ux4iot-shared';
 
 type HookOptions = {
-	onData?: DeviceTwinCallback; // BREAKING
+	onData?: DeviceTwinCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
 };
@@ -22,7 +22,7 @@ export const useDeviceTwin = (
 ): TwinUpdate | undefined => {
 	const { onData } = options;
 	const onDataRef = useRef(onData);
-	const [twin, setTwin] = useState<TwinUpdate>(); // BREAKING
+	const [twin, setTwin] = useState<TwinUpdate>();
 
 	useEffect(() => {
 		onDataRef.current = onData;

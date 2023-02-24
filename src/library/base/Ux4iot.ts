@@ -227,10 +227,9 @@ export class Ux4iot {
 	}
 
 	async grant(grantRequest: GrantRequest, onGrantError?: GrantErrorCallback) {
-		// TEMPORARILY DISABLED FOR MIGRATION 2 TO 3 UPDATE
-		// if (ux4iotState.hasGrant(grantRequest)) {
-		// 	return;
-		// }
+		if (ux4iotState.hasGrant(grantRequest)) {
+			return;
+		}
 		const grantResponse = await this.api.requestGrant(grantRequest);
 		if (grantResponse === GRANT_RESPONSES.GRANTED) {
 			ux4iotState.addGrant(grantRequest);
@@ -248,8 +247,6 @@ export class Ux4iot {
 	) {
 		const grantRequest = getGrantFromSubscriptionRequest(subscriptionRequest);
 
-		// this line was moved here temporarily
-		ux4iotState.addSubscription(subscriberId, subscriptionRequest, onData);
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			const response = await this.getLastValueForSubscriptionRequest(
@@ -262,13 +259,10 @@ export class Ux4iot {
 				// If the request fails, then we do not need to remove the subscription, since it will only be added after
 				// the subscribe request is successful
 				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
-
-				// TEMPORARILY DISABLED FOR MIGRATION 2 TO 3 UPDATE
-				// if (ux4iotState.getNumberOfSubscribers(sr) === 1) {
-				await this.api.subscribe(subscriptionRequest);
-				// }
-				// TEMPORARILY DISABLED FOR MIGRATION 2 TO 3 UPDATE
-				// ux4iotState.addSubscription(subscriberId, sr, onData);
+				if (ux4iotState.getNumberOfSubscribers(subscriptionRequest) === 1) {
+					await this.api.subscribe(subscriptionRequest);
+				}
+				ux4iotState.addSubscription(subscriberId, subscriptionRequest, onData);
 			} catch (error) {
 				onSubscriptionError?.((error as AxiosError).response?.data);
 			}
