@@ -1,4 +1,5 @@
 // twins won't change in the forseeable future so instead of using the "Twin['properties] type"
+
 // of the azure-iothub library a manual typing is used. azure-iothub isn't really getting updated..
 export type TwinUpdate = {
 	version: number;
@@ -67,7 +68,7 @@ export type D2CMessageSubscriptionRequest = SubscriptionRequestBase<{
 }>;
 
 export type SubscriptionRequest =
-	| TelemetrySubscriptionRequest // null means: Access to all telemetry keysS
+	| TelemetrySubscriptionRequest
 	| DeviceTwinSubscriptionRequest
 	| ConnectionStateSubscriptionRequest
 	| D2CMessageSubscriptionRequest;
@@ -203,3 +204,25 @@ export const isD2CMessageGrantRequest = (
 		(request as GrantRequest).type === 'd2cMessages'
 	);
 };
+
+export type LastValueResponse<T> = {
+	deviceId: string;
+	data: T;
+	timestamp: string;
+};
+
+export type CachedValueType =
+	| string
+	| boolean
+	| number
+	| Record<string, unknown>;
+
+export type LastValueObj<T extends CachedValueType> = {
+	value: T;
+	timestamp: string; // iso date
+};
+export type LastValueTelemetryResponse = LastValueResponse<
+	Record<string, LastValueObj<CachedValueType>>
+>;
+export type LastValueDeviceTwinResponse = LastValueResponse<TwinUpdate>;
+export type LastValueConnectionStateResponse = LastValueResponse<boolean>;

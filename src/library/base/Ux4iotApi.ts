@@ -105,8 +105,12 @@ export class Ux4iotApi {
 
 	public async getLastTelemetryValues(
 		deviceId: string,
-		telemetryKey: string
-	): Promise<{ deviceId: string; data: any; timestamp: string }> {
+		telemetryKey: string | null
+	): Promise<{
+		deviceId: string;
+		data: Record<string, unknown>;
+		timestamp: string;
+	}> {
 		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
 
 		const response = await this.axiosInstance.get(
