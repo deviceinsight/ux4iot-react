@@ -54,7 +54,7 @@ function App(): JSX.Element | null {
 					<ToggleableBox label="Show MultiConnectionState">
 						<TestMultiConnectionState deviceIds={['simulated-device']} />
 					</ToggleableBox>
-					<ToggleableBox label="Show Temperature Subscriber" initialShow={true}>
+					<ToggleableBox label="Show Temperature Subscriber">
 						<TestSingleSubscriber
 							deviceId="simulated-device"
 							datapointName="temperature"

@@ -7,16 +7,20 @@ import {
 	SubscriptionErrorCallback,
 	GrantErrorCallback,
 	GRANT_RESPONSES,
+	TelemetryCallback,
 } from './types';
 
 import {
+	CachedValueType,
 	DesiredPropertyGrantRequest,
 	DirectMethodGrantRequest,
 	GrantRequest,
 	IoTHubResponse,
+	LastValueObj,
 	LastValueResponse,
 	Message,
 	SubscriptionRequest,
+	TelemetrySubscriptionRequest,
 } from './ux4iot-shared';
 
 import { Ux4iotApi } from './Ux4iotApi';
@@ -154,7 +158,9 @@ export class Ux4iot {
 							if (isTelemetryMessage(m)) {
 								const telemetry: Record<string, unknown> = {};
 								for (const telemetryKey of sub.telemetryKeys) {
-									telemetry[telemetryKey] = m.telemetry[telemetryKey];
+									if (m.telemetry[telemetryKey]) {
+										telemetry[telemetryKey] = m.telemetry[telemetryKey];
+									}
 								}
 								sub.onData(m.deviceId, telemetry, m.timestamp);
 							}
@@ -172,34 +178,6 @@ export class Ux4iot {
 								sub.onData(m.deviceId, m.deviceTwin, m.timestamp);
 							break;
 					}
-				}
-			}
-		}
-	}
-
-	async unsubscribeAll() {
-		for (const [subscriberId, subscriptions] of Object.entries(
-			ux4iotState.state.subscriptions
-		)) {
-			for (const sub of subscriptions) {
-				const { onData, ...subscriptionRequest } = sub;
-				if (sub.type === 'telemetry') {
-					const { deviceId, type, telemetryKeys } = sub;
-					for (const telemetryKey of telemetryKeys) {
-						const sr = {
-							sessionId: this.sessionId,
-							telemetryKey,
-							deviceId,
-							type,
-						};
-						await this.unsubscribe(subscriberId, sr);
-					}
-				} else {
-					const sr = {
-						...subscriptionRequest,
-						sessionId: this.sessionId,
-					} as SubscriptionRequest;
-					await this.unsubscribe(subscriberId, sr);
 				}
 			}
 		}
@@ -260,7 +238,7 @@ export class Ux4iot {
 				// If the request fails, then we do not need to remove the subscription, since it will only be added after
 				// the subscribe request is successful
 				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
-				if (ux4iotState.getNumberOfSubscribers(subscriptionRequest) === 1) {
+				if (ux4iotState.getNumberOfSubscribers(subscriptionRequest) === 0) {
 					await this.api.subscribe(subscriptionRequest);
 				}
 				ux4iotState.addSubscription(subscriberId, subscriptionRequest, onData);
@@ -295,6 +273,103 @@ export class Ux4iot {
 		}
 	}
 
+	async subscribeAllTelemetry(
+		sessionId: string,
+		deviceId: string,
+		telemetryKeys: string[],
+		subscriberId: string,
+		onData: TelemetryCallback,
+		onSubscriptionError?: SubscriptionErrorCallback,
+		onGrantError?: GrantErrorCallback
+	) {
+		const subscriptionRequests: TelemetrySubscriptionRequest[] =
+			telemetryKeys.map(telemetryKey => ({
+				sessionId,
+				deviceId,
+				telemetryKey,
+				type: 'telemetry',
+			}));
+		const grantRequest: GrantRequest = {
+			sessionId,
+			deviceId,
+			type: 'telemetry',
+			telemetryKey: null,
+		};
+		await this.grant(grantRequest, onGrantError);
+		if (ux4iotState.hasGrant(grantRequest)) {
+			const response = await this.getLastTelemetryValues(
+				deviceId,
+				subscriptionRequests
+			);
+			onData(response.deviceId, response.data, response.timestamp);
+			try {
+				// this if block is used as an optimization.
+				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
+				// If the request fails, then we do not need to remove the subscription, since it will only be added after
+				// the subscribe request is successful
+				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
+				const filteredSubscriptions = subscriptionRequests.filter(s => {
+					return ux4iotState.getNumberOfSubscribers(s) === 0;
+				});
+				await this.api.subscribeAll(filteredSubscriptions);
+				for (const sr of subscriptionRequests) {
+					ux4iotState.addSubscription(subscriberId, sr, onData);
+				}
+			} catch (error) {
+				onSubscriptionError?.((error as AxiosError).response?.data);
+			}
+		} else {
+			onSubscriptionError?.('No grant for subscription');
+			for (const sr of subscriptionRequests) {
+				ux4iotState.removeSubscription(subscriberId, sr);
+			}
+		}
+	}
+
+	async unsubscribeAllTelemetry(
+		sessionId: string,
+		deviceId: string,
+		telemetryKeys: string[],
+		subscriberId: string,
+		onSubscriptionError?: SubscriptionErrorCallback,
+		onGrantError?: GrantErrorCallback
+	) {
+		const subscriptionRequests: TelemetrySubscriptionRequest[] =
+			telemetryKeys.map(telemetryKey => ({
+				sessionId,
+				deviceId,
+				telemetryKey,
+				type: 'telemetry',
+			}));
+		const grantRequest: GrantRequest = {
+			sessionId,
+			deviceId,
+			type: 'telemetry',
+			telemetryKey: null,
+		};
+		await this.grant(grantRequest, onGrantError);
+		if (ux4iotState.hasGrant(grantRequest)) {
+			try {
+				// this if block is used as an optimization.
+				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
+				// If the request fails, then we do not need to remove the subscription, since it will only be added after
+				// the subscribe request is successful
+				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
+				const filteredSubscriptions = subscriptionRequests.filter(s => {
+					return ux4iotState.getNumberOfSubscribers(s) === 1;
+				});
+				await this.api.unsubscribeAll(filteredSubscriptions);
+				for (const sr of subscriptionRequests) {
+					ux4iotState.removeSubscription(subscriberId, sr);
+				}
+			} catch (error) {
+				onSubscriptionError?.((error as AxiosError).response?.data);
+			}
+		} else {
+			onSubscriptionError?.('No grant for subscription');
+		}
+	}
+
 	hasSubscription(
 		subscriberId: string,
 		subscriptionRequest: SubscriptionRequest
@@ -318,31 +393,50 @@ export class Ux4iot {
 		return subscriptions;
 	}
 
-	async removeSubscriberId(subscriberId: string) {
+	async removeSubscriberId(subscriberId: string, sessionId: string) {
 		const subscriptions = ux4iotState.state.subscriptions[subscriberId];
-
 		if (subscriptions) {
-			for (const sub of subscriptions) {
-				try {
-					if (sub.type === 'telemetry') {
-						for (const telemetryKey of sub.telemetryKeys) {
-							const sr = {
-								type: sub.type,
-								deviceId: sub.deviceId,
-								telemetryKey,
-								sessionId: sub.sessionId,
-							};
-							await this.unsubscribe(subscriberId, sr);
+			const byDeviceId = subscriptions.reduce<
+				Record<string, ux4iotState.Subscription[]>
+			>((acc, sub) => {
+				(acc[sub.deviceId] = acc[sub.deviceId] || []).push(sub);
+				return acc;
+			}, {});
+
+			for (const [deviceId, subscriptions] of Object.entries(byDeviceId)) {
+				for (const sub of subscriptions) {
+					try {
+						if (sub.type === 'telemetry') {
+							await this.unsubscribeAllTelemetry(
+								sessionId,
+								deviceId,
+								sub.telemetryKeys,
+								subscriberId
+							);
+						} else {
+							await this.unsubscribe(subscriberId, sub);
 						}
-					} else {
-						await this.unsubscribe(subscriberId, sub);
+					} catch (error) {
+						console.warn(
+							'couldnt unsubscribe subscriberId',
+							subscriberId,
+							error
+						);
 					}
-				} catch (error) {
-					console.warn('couldnt unsubscribe subscriberId', subscriberId, error);
 				}
 			}
 		}
 		ux4iotState.cleanSubId(subscriberId);
+	}
+
+	async getLastTelemetryValues(
+		deviceId: string,
+		subscriptionRequest: TelemetrySubscriptionRequest[]
+	): Promise<LastValueResponse<Record<string, LastValueObj<CachedValueType>>>> {
+		const telemetryKeys = subscriptionRequest.map(
+			sr => sr.telemetryKey as string
+		);
+		return this.api.getLastTelemetryValues(deviceId, telemetryKeys);
 	}
 
 	async getLastValueForSubscriptionRequest(
@@ -357,7 +451,10 @@ export class Ux4iot {
 					return await this.api.getLastDeviceTwin(deviceId);
 				case 'telemetry': {
 					const { telemetryKey } = subscriptionRequest;
-					return await this.api.getLastTelemetryValues(deviceId, telemetryKey);
+					return await this.api.getLastTelemetryValue(
+						deviceId,
+						telemetryKey as string
+					);
 				}
 				case 'd2cMessages':
 					return Promise.resolve({ deviceId, data: undefined, timestamp: '' });

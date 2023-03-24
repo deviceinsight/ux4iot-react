@@ -68,7 +68,7 @@ export type D2CMessageSubscriptionRequest = SubscriptionRequestBase<{
 }>;
 
 export type SubscriptionRequest =
-	| TelemetrySubscriptionRequest
+	| TelemetrySubscriptionRequest // null means: Access to all telemetry keysS
 	| DeviceTwinSubscriptionRequest
 	| ConnectionStateSubscriptionRequest
 	| D2CMessageSubscriptionRequest;
