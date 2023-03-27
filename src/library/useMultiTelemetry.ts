@@ -35,6 +35,7 @@ type UseMultiTelemetryOutput = {
 
 type HookOptions = {
 	initialSubscribers?: Subscribers;
+	useBulk?: boolean;
 	onData?: TelemetryCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
@@ -94,15 +95,15 @@ export const useMultiTelemetry = (
 	const addTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {
 			if (ux4iot) {
-				for (const key of telemetryKeys) {
-					await ux4iot.subscribe(
-						subscriptionId.current,
-						getSubscriptionRequest(deviceId, key, sessionId),
-						onTelemetry,
-						onSubscriptionErrorRef.current,
-						onGrantErrorRef.current
-					);
-				}
+				await ux4iot.subscribeAllTelemetry(
+					sessionId,
+					deviceId,
+					telemetryKeys,
+					subscriptionId.current,
+					onTelemetry,
+					onSubscriptionErrorRef.current,
+					onGrantErrorRef.current
+				);
 				setCurrentSubscribers(
 					ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
 				);
@@ -114,14 +115,14 @@ export const useMultiTelemetry = (
 	const removeTelemetry = useCallback(
 		async (deviceId: string, telemetryKeys: string[]) => {
 			if (ux4iot) {
-				for (const key of telemetryKeys) {
-					await ux4iot.unsubscribe(
-						subscriptionId.current,
-						getSubscriptionRequest(deviceId, key, sessionId),
-						onSubscriptionErrorRef.current,
-						onGrantErrorRef.current
-					);
-				}
+				await ux4iot.unsubscribeAllTelemetry(
+					sessionId,
+					deviceId,
+					telemetryKeys,
+					subscriptionId.current,
+					onSubscriptionErrorRef.current,
+					onGrantErrorRef.current
+				);
 				setCurrentSubscribers(
 					ux4iot.getSubscriberIdSubscriptions(subscriptionId.current)
 				);
@@ -177,9 +178,9 @@ export const useMultiTelemetry = (
 	useEffect(() => {
 		const subId = subscriptionId.current;
 		return () => {
-			ux4iot?.removeSubscriberId(subId);
+			ux4iot?.removeSubscriberId(subId, sessionId);
 		};
-	}, [ux4iot]);
+	}, [ux4iot, sessionId]);
 
 	return {
 		telemetry,

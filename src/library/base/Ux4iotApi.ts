@@ -8,8 +8,13 @@ import {
 } from './types';
 import { printDevModeWarning } from './utils';
 import {
+	CachedValueType,
 	GrantRequest,
 	IoTHubResponse,
+	LastValueConnectionStateResponse,
+	LastValueDeviceTwinResponse,
+	LastValueObj,
+	LastValueTelemetryResponse,
 	parseConnectionString,
 	SubscriptionRequest,
 } from './ux4iot-shared';
@@ -87,7 +92,7 @@ export class Ux4iotApi {
 	): Promise<void> {
 		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
 
-		this.axiosInstance.put('/subscription', {
+		await this.axiosInstance.put('/subscription', {
 			...subscriptionRequestBase,
 			sessionId: this.sessionId,
 		});
@@ -98,19 +103,39 @@ export class Ux4iotApi {
 	): Promise<void> {
 		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
 
-		this.axiosInstance.delete('/subscription', {
+		await this.axiosInstance.delete('/subscription', {
 			data: { ...subscriptionRequestBase, sessionId: this.sessionId },
 		});
 	}
 
-	public async getLastTelemetryValues(
+	public async subscribeAll(
+		subscriptionRequests: SubscriptionRequest[]
+	): Promise<void> {
+		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
+
+		await this.axiosInstance.put(
+			'/subscriptions',
+			subscriptionRequests.map(sr => ({ ...sr, sessionId: this.sessionId }))
+		);
+	}
+
+	public async unsubscribeAll(
+		subscriptionRequests: SubscriptionRequest[]
+	): Promise<void> {
+		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
+
+		await this.axiosInstance.delete('/subscriptions', {
+			data: subscriptionRequests.map(sr => ({
+				...sr,
+				sessionId: this.sessionId,
+			})),
+		});
+	}
+
+	public async getLastTelemetryValue(
 		deviceId: string,
-		telemetryKey: string | null
-	): Promise<{
-		deviceId: string;
-		data: Record<string, unknown>;
-		timestamp: string;
-	}> {
+		telemetryKey: string
+	): Promise<LastValueTelemetryResponse> {
 		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
 
 		const response = await this.axiosInstance.get(
@@ -120,9 +145,29 @@ export class Ux4iotApi {
 		return response.data;
 	}
 
+	public async getLastTelemetryValues(
+		deviceId: string,
+		telemetryKeys: string[]
+	): Promise<LastValueTelemetryResponse> {
+		const response = await this.axiosInstance.get(`/lastValue/${deviceId}`, {
+			headers: { sessionId: this.sessionId },
+		});
+		const telemetryValues: Record<string, LastValueObj<CachedValueType>> = {};
+		for (const [key, value] of Object.entries(response.data.data)) {
+			if (telemetryKeys.includes(key)) {
+				telemetryValues[key as string] = value as LastValueObj<CachedValueType>;
+			}
+		}
+		return {
+			deviceId: response.data.deviceId,
+			data: telemetryValues,
+			timestamp: response.data.timestamp,
+		};
+	}
+
 	public async getLastDeviceTwin(
 		deviceId: string
-	): Promise<{ deviceId: string; data: any; timestamp: string }> {
+	): Promise<LastValueDeviceTwinResponse> {
 		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
 
 		const response = await this.axiosInstance.get(`/deviceTwin/${deviceId}`, {
@@ -133,7 +178,7 @@ export class Ux4iotApi {
 
 	public async getLastConnectionState(
 		deviceId: string
-	): Promise<{ deviceId: string; data: any; timestamp: string }> {
+	): Promise<LastValueConnectionStateResponse> {
 		if (!this.sessionId) return Promise.reject('There is no ux4iot session');
 
 		const response = await this.axiosInstance.get(

@@ -21,25 +21,25 @@ import {
 } from './ux4iot-shared';
 import { grantRequestsEqual } from './utils';
 
-type Subscription =
+export type Subscription =
 	| TelemetrySubscription
 	| DeviceTwinSubscription
 	| D2CMessageSubscription
 	| ConnectionStateSubscription;
-type TelemetrySubscription = Omit<
+export type TelemetrySubscription = Omit<
 	TelemetrySubscriptionRequest,
 	'telemetryKey'
 > & {
 	onData: TelemetryCallback;
 	telemetryKeys: string[];
 };
-type DeviceTwinSubscription = DeviceTwinSubscriptionRequest & {
+export type DeviceTwinSubscription = DeviceTwinSubscriptionRequest & {
 	onData: DeviceTwinCallback;
 };
-type D2CMessageSubscription = D2CMessageSubscriptionRequest & {
+export type D2CMessageSubscription = D2CMessageSubscriptionRequest & {
 	onData: D2CMessageCallback;
 };
-type ConnectionStateSubscription = ConnectionStateSubscriptionRequest & {
+export type ConnectionStateSubscription = ConnectionStateSubscriptionRequest & {
 	onData: ConnectionStateCallback;
 };
 
