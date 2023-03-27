@@ -303,14 +303,9 @@ export class Ux4iot {
 			);
 			onData(response.deviceId, response.data, response.timestamp);
 			try {
-				// this if block is used as an optimization.
-				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
-				// If the request fails, then we do not need to remove the subscription, since it will only be added after
-				// the subscribe request is successful
-				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
-				const filteredSubscriptions = subscriptionRequests.filter(s => {
-					return ux4iotState.getNumberOfSubscribers(s) === 0;
-				});
+				const filteredSubscriptions = subscriptionRequests.filter(
+					s => ux4iotState.getNumberOfSubscribers(s) === 0
+				);
 				await this.api.subscribeAll(filteredSubscriptions);
 				for (const sr of subscriptionRequests) {
 					ux4iotState.addSubscription(subscriberId, sr, onData);
@@ -350,14 +345,9 @@ export class Ux4iot {
 		await this.grant(grantRequest, onGrantError);
 		if (ux4iotState.hasGrant(grantRequest)) {
 			try {
-				// this if block is used as an optimization.
-				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
-				// If the request fails, then we do not need to remove the subscription, since it will only be added after
-				// the subscribe request is successful
-				// If the number of subscribers isn't 0 then we know that the request succeeded in the past
-				const filteredSubscriptions = subscriptionRequests.filter(s => {
-					return ux4iotState.getNumberOfSubscribers(s) === 1;
-				});
+				const filteredSubscriptions = subscriptionRequests.filter(
+					s => ux4iotState.getNumberOfSubscribers(s) === 1
+				);
 				await this.api.unsubscribeAll(filteredSubscriptions);
 				for (const sr of subscriptionRequests) {
 					ux4iotState.removeSubscription(subscriberId, sr);
