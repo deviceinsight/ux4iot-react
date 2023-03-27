@@ -16,8 +16,11 @@ import {
 	DirectMethodGrantRequest,
 	GrantRequest,
 	IoTHubResponse,
+	LastValueConnectionStateResponse,
+	LastValueDeviceTwinResponse,
 	LastValueObj,
 	LastValueResponse,
+	LastValueTelemetryResponse,
 	Message,
 	SubscriptionRequest,
 	TelemetrySubscriptionRequest,
@@ -231,7 +234,7 @@ export class Ux4iot {
 			const response = await this.getLastValueForSubscriptionRequest(
 				subscriptionRequest
 			);
-			onData(response.deviceId, response.data, response.timestamp);
+			onData(response.deviceId, response.data as any, response.timestamp);
 			try {
 				// this if block is used as an optimization.
 				// When the number of subscribers is bigger than 0 then we do not need to fire a subscription request
@@ -408,7 +411,7 @@ export class Ux4iot {
 						}
 					} catch (error) {
 						console.warn(
-							'couldnt unsubscribe subscriberId',
+							'could not unsubscribe subscriberId',
 							subscriberId,
 							error
 						);
@@ -431,7 +434,12 @@ export class Ux4iot {
 
 	async getLastValueForSubscriptionRequest(
 		subscriptionRequest: SubscriptionRequest
-	): Promise<LastValueResponse<any>> {
+	): Promise<
+		| LastValueTelemetryResponse
+		| LastValueConnectionStateResponse
+		| LastValueDeviceTwinResponse
+		| LastValueResponse<undefined>
+	> {
 		const { type, deviceId } = subscriptionRequest;
 		try {
 			switch (type) {

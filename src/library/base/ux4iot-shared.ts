@@ -68,7 +68,7 @@ export type D2CMessageSubscriptionRequest = SubscriptionRequestBase<{
 }>;
 
 export type SubscriptionRequest =
-	| TelemetrySubscriptionRequest // null means: Access to all telemetry keysS
+	| TelemetrySubscriptionRequest // null means: Access to all telemetry keys
 	| DeviceTwinSubscriptionRequest
 	| ConnectionStateSubscriptionRequest
 	| D2CMessageSubscriptionRequest;
@@ -226,3 +226,10 @@ export type LastValueTelemetryResponse = LastValueResponse<
 >;
 export type LastValueDeviceTwinResponse = LastValueResponse<TwinUpdate>;
 export type LastValueConnectionStateResponse = LastValueResponse<boolean>;
+
+export type LastValuesBodyConfig = {
+	connectionState?: boolean;
+	deviceTwin?: boolean;
+	telemetry?: string[];
+};
+export type LastValuesRequestBody = Record<string, LastValuesBodyConfig>;
