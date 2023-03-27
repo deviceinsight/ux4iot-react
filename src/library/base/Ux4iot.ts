@@ -158,7 +158,7 @@ export class Ux4iot {
 							if (isTelemetryMessage(m)) {
 								const telemetry: Record<string, unknown> = {};
 								for (const telemetryKey of sub.telemetryKeys) {
-									if (m.telemetry[telemetryKey]) {
+									if (m.telemetry[telemetryKey] !== undefined) {
 										telemetry[telemetryKey] = m.telemetry[telemetryKey];
 									}
 								}

@@ -161,9 +161,9 @@ export const useMultiConnectionState = (
 	useEffect(() => {
 		const subId = subscriptionId.current;
 		return () => {
-			ux4iot?.removeSubscriberId(subId);
+			ux4iot?.removeSubscriberId(subId, sessionId);
 		};
-	}, [ux4iot]);
+	}, [ux4iot, sessionId]);
 
 	return {
 		connectionStates,

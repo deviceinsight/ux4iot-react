@@ -21,6 +21,10 @@ export type ADD_DATA_ACTION = {
 
 export type TelemetryAction = ADD_DATA_ACTION;
 
+function isObject(value: unknown) {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
 export const telemetryReducer: Reducer<TelemetryState, TelemetryAction> = (
 	state,
 	action
@@ -31,7 +35,7 @@ export const telemetryReducer: Reducer<TelemetryState, TelemetryAction> = (
 			const nextDeviceState = { ...state[deviceId] };
 
 			for (const [telemetryKey, telemetryValue] of Object.entries(message)) {
-				nextDeviceState[telemetryKey] = telemetryValue
+				nextDeviceState[telemetryKey] = isObject(telemetryValue)
 					? { value: telemetryValue.value, timestamp: telemetryValue.timestamp }
 					: { value: telemetryValue, timestamp };
 			}
