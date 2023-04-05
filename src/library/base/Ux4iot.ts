@@ -309,7 +309,10 @@ export class Ux4iot {
 				const filteredSubscriptions = subscriptionRequests.filter(
 					s => ux4iotState.getNumberOfSubscribers(s) === 0
 				);
-				await this.api.subscribeAll(filteredSubscriptions);
+				if (filteredSubscriptions.length > 0) {
+					await this.api.subscribeAll(filteredSubscriptions);
+				}
+				// we have to iterate over all subscriptionRequests because the state needs to save all subscribers with subscriberId
 				for (const sr of subscriptionRequests) {
 					ux4iotState.addSubscription(subscriberId, sr, onData);
 				}
@@ -351,7 +354,10 @@ export class Ux4iot {
 				const filteredSubscriptions = subscriptionRequests.filter(
 					s => ux4iotState.getNumberOfSubscribers(s) === 1
 				);
-				await this.api.unsubscribeAll(filteredSubscriptions);
+				if (filteredSubscriptions.length > 0) {
+					await this.api.unsubscribeAll(filteredSubscriptions);
+				}
+				// we have to iterate over all subscriptionRequests because the state needs to save all subscribers with subscriberId
 				for (const sr of subscriptionRequests) {
 					ux4iotState.removeSubscription(subscriberId, sr);
 				}
