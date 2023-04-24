@@ -8,6 +8,7 @@ import { TestMultiTelemetry } from './TestMultiTelemetry';
 import { TestMultiConnectionState } from './TestMultiConnectionState';
 import { TestD2CMessageSubscriber } from './TestD2CMessageSubscriber';
 import { ToggleableBox } from './ToggleableBox';
+import { TestMultiTelemetryObject } from './TestMultiTelemetryObject';
 
 const { VITE_UX4IOT_CONNECTION_STRING } = import.meta.env;
 
@@ -58,6 +59,12 @@ function App(): JSX.Element | null {
 						<TestSingleSubscriber
 							deviceId="simulated-device"
 							datapointName="temperature"
+						/>
+					</ToggleableBox>
+					<ToggleableBox label="Show MultiTelemetry Object Subscriber">
+						<TestMultiTelemetryObject
+							datapoints={[]}
+							deviceId="simulated-device"
 						/>
 					</ToggleableBox>
 					<ToggleableBox label="Show Geoposition Subscriber">

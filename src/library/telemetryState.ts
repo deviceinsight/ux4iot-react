@@ -19,6 +19,10 @@ export type ADD_DATA_ACTION = {
 	timestamp?: string;
 };
 
+// message1 = { deviceId: 'sim1', timestamp: 'isodate', message: { [telemetryKey]: { value: v, timestamp: t }, ...}
+// message2 = { deviceId: 'sim1', timestamp: 'isodate', message: { [telemetryKey]: 'abc', ... }
+// message3 = { deviceId: 'sim1', timestamp: 'isodate', message: { [telemetryKey]: { lat: 12, lng: 43 }, ... }
+
 export type TelemetryAction = ADD_DATA_ACTION;
 
 function isObject(value: unknown) {
@@ -35,9 +39,19 @@ export const telemetryReducer: Reducer<TelemetryState, TelemetryAction> = (
 			const nextDeviceState = { ...state[deviceId] };
 
 			for (const [telemetryKey, telemetryValue] of Object.entries(message)) {
-				nextDeviceState[telemetryKey] = isObject(telemetryValue)
-					? { value: telemetryValue.value, timestamp: telemetryValue.timestamp }
-					: { value: telemetryValue, timestamp };
+				const isLastValueMessage =
+					isObject(telemetryValue) &&
+					telemetryValue.timestamp !== undefined &&
+					Object.keys(telemetryValue).length === 2;
+
+				if (isLastValueMessage) {
+					nextDeviceState[telemetryKey] = {
+						value: telemetryValue.value,
+						timestamp: telemetryValue.timestamp,
+					};
+				} else {
+					nextDeviceState[telemetryKey] = { value: telemetryValue, timestamp };
+				}
 			}
 
 			return { ...state, [deviceId]: nextDeviceState };

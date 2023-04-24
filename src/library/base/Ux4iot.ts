@@ -304,6 +304,7 @@ export class Ux4iot {
 				deviceId,
 				subscriptionRequests
 			);
+			// response.data = { [telemetryKey]: { value: v, timestamp: t }, ...}
 			onData(response.deviceId, response.data, response.timestamp);
 			try {
 				const filteredSubscriptions = subscriptionRequests.filter(
