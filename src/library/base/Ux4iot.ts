@@ -36,14 +36,42 @@ import {
 	isTelemetryMessage,
 } from './utils';
 import { DeviceMethodParams } from 'azure-iothub';
-import { NETWORK_STATES, RECONNECT_TIMEOUT } from './constants';
 import { AxiosError } from 'axios';
+import { ConnectionUpdateReason } from './types';
+
+const RECONNECT_TIMEOUT = 5000;
+const MAX_RECONNECT_TIMEOUT = 30000;
+const NETWORK_STATES: Record<string, [ConnectionUpdateReason, string]> = {
+	UX4IOT_OFFLINE: [
+		'ux4iot_unreachable',
+		'Failed to fetch sessionId of ux4iot.',
+	],
+	SERVER_UNAVAILABLE: [
+		'socket_connect_error',
+		'Could not establish connection to ux4iot websocket',
+	],
+	CLIENT_DISCONNECTED: ['socket_disconnect', 'Client manually disconnected'],
+	SERVER_DISCONNECTED: [
+		'socket_disconnect',
+		'Disconnected / Error Connecting.',
+	],
+	CONNECTED: ['socket_connect', 'Connected to ux4iot websocket'],
+};
+
+function nextTimeout(
+	timeout: number = RECONNECT_TIMEOUT,
+	maxTimeout: number = MAX_RECONNECT_TIMEOUT
+) {
+	return timeout + timeout > maxTimeout ? maxTimeout : timeout + timeout;
+}
 
 export class Ux4iot {
 	sessionId = '';
 	socket: Socket | undefined;
 	devMode: boolean;
 	api: Ux4iotApi;
+	retryTimeout: number;
+	maxRetryTimeout: number;
 	retryTimeoutAfterError?: NodeJS.Timeout;
 	onSocketConnectionUpdate?: ConnectionUpdateFunction;
 	onSessionId?: (sessionId: string) => void;
@@ -57,6 +85,8 @@ export class Ux4iot {
 		this.sessionId = sessionId;
 		this.api = api;
 		this.devMode = isDevOptions(options);
+		this.retryTimeout = options.reconnectTimeout ?? RECONNECT_TIMEOUT;
+		this.maxRetryTimeout = options.maxReconnectTimeout ?? MAX_RECONNECT_TIMEOUT;
 		this.onSessionId = onSessionId;
 		this.onSocketConnectionUpdate = options.onSocketConnectionUpdate;
 		this.initializeSocket();
@@ -66,16 +96,36 @@ export class Ux4iot {
 		options: InitializationOptions,
 		onSessionId?: (sessionId: string) => void
 	): Promise<Ux4iot> {
+		const { onSocketConnectionUpdate, reconnectTimeout, maxReconnectTimeout } =
+			options;
+		const timeout = reconnectTimeout ?? RECONNECT_TIMEOUT;
+		const maxTimeout = maxReconnectTimeout ?? MAX_RECONNECT_TIMEOUT;
 		const api = new Ux4iotApi(options);
+		let initializationTimeout: NodeJS.Timeout | undefined;
 		try {
 			const sessionId = await api.getSessionId();
 			api.setSessionId(sessionId);
+			clearTimeout(initializationTimeout);
 			return new Ux4iot(options, sessionId, api, onSessionId);
 		} catch (error) {
 			const [reason, description] = NETWORK_STATES.UX4IOT_OFFLINE;
-			options.onSocketConnectionUpdate?.(reason, description);
+			onSocketConnectionUpdate?.(reason, description);
 
-			throw NETWORK_STATES.UX4IOT_OFFLINE.join();
+			console.warn(
+				`Trying to initialize again in ${timeout / 1000} seconds...`
+			);
+
+			const nextOptions = {
+				...options,
+				reconnectTimeout: nextTimeout(timeout, maxTimeout),
+				maxReconnectTimeout: maxTimeout,
+			};
+
+			return new Promise((resolve, reject) => {
+				initializationTimeout = setTimeout(() => {
+					return resolve(Ux4iot.create(nextOptions, onSessionId));
+				}, timeout);
+			});
 		}
 	}
 
@@ -88,8 +138,10 @@ export class Ux4iot {
 		this.socket.on('data', this.onData.bind(this));
 	}
 
-	private tryReconnect() {
-		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
+	private tryReconnect(timeout: number = this.retryTimeout) {
+		clearTimeout(this.retryTimeoutAfterError);
+
+		this.log(`Trying to reconnect in ${timeout / 1000} seconds...`);
 
 		this.retryTimeoutAfterError = setTimeout(async () => {
 			if (!this.socket) {
@@ -101,12 +153,14 @@ export class Ux4iot {
 					const [reason, description] = NETWORK_STATES.UX4IOT_OFFLINE;
 					this.log(reason, description, error);
 					this.onSocketConnectionUpdate?.(reason, description);
-					this.tryReconnect();
+					this.tryReconnect(
+						nextTimeout(timeout ?? this.retryTimeout, this.maxRetryTimeout)
+					);
 					return;
 				}
 				this.initializeSocket();
 			}
-		}, RECONNECT_TIMEOUT);
+		}, timeout);
 	}
 
 	private async onConnect() {
@@ -116,10 +170,11 @@ export class Ux4iot {
 		console.log('onSessionId called with', this.sessionId);
 		this.onSessionId?.(this.sessionId); // this callback should be used to reestablish all subscriptions
 		this.onSocketConnectionUpdate?.(...NETWORK_STATES.CONNECTED);
-		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
+		clearTimeout(this.retryTimeoutAfterError);
 	}
 
 	private onConnectError() {
+		this.log(`on connect error called`);
 		const socketURL = this.api.getSocketURL(this.sessionId);
 		this.log(`Failed to establish websocket to ${socketURL}`);
 		const [reason, description] = NETWORK_STATES.SERVER_UNAVAILABLE;
@@ -128,6 +183,7 @@ export class Ux4iot {
 	}
 
 	private onDisconnect(error: unknown) {
+		this.log(`on disconnect called`);
 		if (error === 'io client disconnect') {
 			// https://socket.io/docs/v4/client-api/#event-disconnect
 			const [reason, description] = NETWORK_STATES.CLIENT_DISCONNECTED;
@@ -145,7 +201,7 @@ export class Ux4iot {
 	public async destroy(): Promise<void> {
 		this.socket?.disconnect();
 		this.socket = undefined;
-		clearTimeout(this.retryTimeoutAfterError as unknown as NodeJS.Timeout);
+		clearTimeout(this.retryTimeoutAfterError);
 		this.log('socket with id', this.sessionId, 'destroyed');
 	}
 

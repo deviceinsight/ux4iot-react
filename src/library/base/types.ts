@@ -26,6 +26,8 @@ export type ConnectionUpdateFunction = (
 
 export type InitializationOptions = {
 	onSocketConnectionUpdate?: ConnectionUpdateFunction;
+	reconnectTimeout?: number;
+	maxReconnectTimeout?: number;
 } & (InitializeDevOptions | InitializeProdOptions);
 export type InitializeDevOptions = {
 	adminConnectionString: string;

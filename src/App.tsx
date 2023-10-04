@@ -43,8 +43,8 @@ function App(): JSX.Element | null {
 					}}
 				>
 					<div>
-						<div>Connection Reason: ${connectionReason}</div>
-						<div>Connection Desc: ${connectionDesc}</div>
+						<div>Connection Reason: {connectionReason}</div>
+						<div>Connection Desc: {connectionDesc}</div>
 					</div>
 					<ToggleableBox label="Show App">
 						<TestSubscriber datapoints={[]} deviceId="simulated-device" />

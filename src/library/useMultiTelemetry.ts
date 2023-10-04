@@ -35,7 +35,6 @@ type UseMultiTelemetryOutput = {
 
 type HookOptions = {
 	initialSubscribers?: Subscribers;
-	useBulk?: boolean;
 	onData?: TelemetryCallback;
 	onGrantError?: GrantErrorCallback;
 	onSubscriptionError?: SubscriptionErrorCallback;
