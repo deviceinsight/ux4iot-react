@@ -73,6 +73,7 @@ export class Ux4iot {
 	retryTimeout: number;
 	maxRetryTimeout: number;
 	retryTimeoutAfterError?: NodeJS.Timeout;
+	static initializationTimeout?: NodeJS.Timeout;
 	onSocketConnectionUpdate?: ConnectionUpdateFunction;
 	onSessionId?: (sessionId: string) => void;
 
@@ -101,11 +102,10 @@ export class Ux4iot {
 		const timeout = reconnectTimeout ?? RECONNECT_TIMEOUT;
 		const maxTimeout = maxReconnectTimeout ?? MAX_RECONNECT_TIMEOUT;
 		const api = new Ux4iotApi(options);
-		let initializationTimeout: NodeJS.Timeout | undefined;
 		try {
 			const sessionId = await api.getSessionId();
 			api.setSessionId(sessionId);
-			clearTimeout(initializationTimeout);
+			clearTimeout(Ux4iot.initializationTimeout);
 			return new Ux4iot(options, sessionId, api, onSessionId);
 		} catch (error) {
 			const [reason, description] = NETWORK_STATES.UX4IOT_OFFLINE;
@@ -122,10 +122,17 @@ export class Ux4iot {
 			};
 
 			return new Promise((resolve, reject) => {
-				initializationTimeout = setTimeout(() => {
+				Ux4iot.initializationTimeout = setTimeout(() => {
 					return resolve(Ux4iot.create(nextOptions, onSessionId));
 				}, timeout);
 			});
+		}
+	}
+
+	public static destroyInitialization() {
+		if (Ux4iot.initializationTimeout) {
+			console.warn('Initialization interval canceled');
+			clearTimeout(Ux4iot.initializationTimeout);
 		}
 	}
 

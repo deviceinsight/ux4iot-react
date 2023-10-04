@@ -53,6 +53,7 @@ export const Ux4iotContextProvider: ComponentType<Ux4iotProviderProps> = ({
 		initialize();
 
 		return () => {
+			Ux4iot.destroyInitialization();
 			if (ux4iot) {
 				ux4iot.destroy();
 				setUx4iot(undefined);
