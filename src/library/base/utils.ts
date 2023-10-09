@@ -82,7 +82,7 @@ export function printDevModeWarning(): void {
 export function isConnectionStateMessage(
 	message: Record<string, unknown>
 ): message is ConnectionStateMessage {
-	return !!message.connectionState;
+	return message.connectionState !== undefined;
 }
 
 export function isD2CMessage(
