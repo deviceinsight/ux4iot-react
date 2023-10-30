@@ -8,9 +8,13 @@ type Props = {
 export const TestD2CMessageSubscriber: FC<Props> = ({ deviceId }) => {
 	const [ts, setTs] = useState<string | undefined>('');
 	const lastMessage = useD2CMessages(deviceId, {
-		onData: (message, timestamp) => {
+		onData: (deviceId, message, timestamp) => {
 			setTs(timestamp);
-			console.log('useD2CMessages received message:', message, 'at', timestamp);
+			console.log(
+				`Received message from ${deviceId} at ${timestamp}: ${JSON.stringify(
+					message
+				)}`
+			);
 		},
 	});
 

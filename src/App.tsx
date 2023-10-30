@@ -40,6 +40,8 @@ function App(): JSX.Element | null {
 							setConnectionReason(reason);
 							setConnectionDesc(description);
 						},
+						reconnectTimeout: 4000,
+						maxReconnectTimeout: 10000,
 					}}
 				>
 					<div>
