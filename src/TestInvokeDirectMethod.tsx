@@ -1,5 +1,5 @@
 import { FC, useCallback, useState } from 'react';
-import { useDirectMethod } from './library/useDirectMethod';
+import { useDirectMethod } from './library';
 
 type Props = {
 	deviceId: string;

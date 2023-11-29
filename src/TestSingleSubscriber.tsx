@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useTelemetry } from './library/useTelemetry';
+import { useTelemetry } from './library';
 
 type Props = {
 	deviceId: string;

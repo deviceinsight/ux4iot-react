@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { FC, useCallback, useState } from 'react';
 import { IoTHubResponse } from './library';
-import { usePatchDesiredProperties } from './library/usePatchDesiredProperties';
+import { usePatchDesiredProperties } from './library';
 
 type Props = {
 	deviceId: string;

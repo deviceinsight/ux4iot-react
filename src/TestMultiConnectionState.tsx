@@ -1,5 +1,5 @@
 import { FC } from 'react';
-import { useMultiConnectionState } from './library/useMultiConnectionState';
+import { useMultiConnectionState } from './library';
 
 type Props = {
 	deviceIds: string[];

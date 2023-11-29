@@ -1,7 +1,5 @@
 import { FC, useState } from 'react';
-import { useMultiTelemetry } from './library';
-import { useConnectionState } from './library/useConnectionState';
-import { useDeviceTwin } from './library/useDeviceTwin';
+import { useMultiTelemetry, useConnectionState, useDeviceTwin } from './library';
 
 type Props = {
 	deviceId: string;

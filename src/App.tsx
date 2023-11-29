@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Ux4iotContextProvider } from './library/Ux4iotContext';
+import { Ux4iotContextProvider } from './library';
 import { TestInvokeDirectMethod } from './TestInvokeDirectMethod';
 import { TestPatchDesiredProperties } from './TestPatchDesiredProperties';
 import { TestSingleSubscriber } from './TestSingleSubscriber';

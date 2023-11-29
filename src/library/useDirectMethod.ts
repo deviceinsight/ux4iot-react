@@ -1,7 +1,7 @@
-import { useCallback, useContext, useEffect, useRef } from 'react';
-import { GrantErrorCallback } from './base/types';
-import { DirectMethodGrantRequest, IoTHubResponse } from './base/ux4iot-shared';
-import { Ux4iotContext } from './Ux4iotContext';
+import {useCallback, useContext, useEffect, useRef} from 'react';
+import {GrantErrorCallback} from './base/types';
+import {DirectMethodGrantRequest, IoTHubResponse} from './base/ux4iot-shared';
+import {Ux4iotContext} from './Ux4iotContext';
 
 type UseDirectMethodOutput = (
 	payload: Record<string, unknown>,
@@ -26,7 +26,7 @@ export const useDirectMethod = (
 		onGrantErrorRef.current = onGrantError;
 	}, [onGrantError]);
 
-	const directMethod = useCallback(
+	return useCallback(
 		async (
 			payload,
 			responseTimeoutInSeconds,
@@ -53,6 +53,4 @@ export const useDirectMethod = (
 		},
 		[ux4iot, sessionId, deviceId, directMethodName]
 	);
-
-	return directMethod;
 };

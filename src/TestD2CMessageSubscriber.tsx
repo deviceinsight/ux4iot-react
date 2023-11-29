@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { useD2CMessages } from './library/useD2CMessages';
+import { useD2CMessages } from './library';
 
 type Props = {
 	deviceId: string;
