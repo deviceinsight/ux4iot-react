@@ -22,7 +22,7 @@
 		"prettier": "prettier --ignore-path=./.gitignore --write \"{src/**/*.ts, *.ts,src/**/*.tsx, *.tsx}\""
 	},
 	"dependencies": {
-		"axios": "^1.6.2",
+		"axios": "^1.7.4",
 		"azure-iothub": "1.14.1",
 		"socket.io-client": "^4.2.0",
 		"uuid": "^8.3.2"
